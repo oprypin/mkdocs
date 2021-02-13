@@ -107,12 +107,37 @@ class UtilsTests(unittest.TestCase):
         # Leading slash intentionally ignored
         for url_slash in ('', '/'):
             for other_slash in ('', '/'):
+                print('| `get_relative_url()` | now | before |')
+                print('|------|-----|--------|')
                 for (url, other), expected_result in expected_results.items():
+                    url = url_slash + url
+                    other = other_slash + other
                     # Acknowledge the only difference that a leading slash can cause:
-                    if url_slash + url == '/':
+                    if url == '/':
                         expected_result += '/'
-                    relurl = utils.get_relative_url(url_slash + url, other_slash + other)
-                    self.assertEqual(relurl, expected_result)
+                    try:
+                        relurl = utils.get_relative_url(url, other)
+                        cwd = os.getcwd()
+                        os.chdir('/tmp/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a')
+                        if utils.get_relative_url(url, other) != relurl:
+                            relurl = None
+                        os.chdir('/')
+                        if utils.get_relative_url(url, other) != relurl:
+                            relurl = None
+                        os.chdir(cwd)
+
+                    except ValueError as e:
+                        relurl = repr(e)
+
+                    if relurl is None:
+                        relurl = 'depends on `os.getcwd()`'
+                    elif relurl == expected_result:
+                        relurl = 'same'
+                    else:
+                        relurl = f'`{relurl}`'
+                    print(f'| `{url!r}`, `{other!r}` | `{expected_result}` | {relurl} |')
+
+                print()
 
     def test_create_media_urls(self):
 
