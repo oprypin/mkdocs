@@ -63,7 +63,7 @@ digraph mkdocs {
 
         subgraph cluster_on_pre_page {
             label="on_pre_page"
-        href="#on_pre_page"
+            href="#on_pre_page"
             on_pre_page [label="<page>page|<config>config|<files>files",shape=record,fillcolor="#ffffff99"]
             bgcolor="#ffff0066"
         }
@@ -71,7 +71,7 @@ digraph mkdocs {
         on_pre_page:page:s -> on_read_source:page:n [style=dashed,penwidth=1.5]
         subgraph cluster_on_read_source {
             label="on_read_source"
-        href="#on_read_source"
+            href="#on_read_source"
             on_read_source [label="<page>page|<config>config",shape=record,fillcolor="#ffffff99"]
             bgcolor="#ffff0066"
         }
@@ -79,7 +79,7 @@ digraph mkdocs {
         on_read_source -> on_page_markdown:markdown:n [style=dashed,penwidth=1.5,ltail=cluster_on_read_source]
         subgraph cluster_on_page_markdown {
             label="on_page_markdown"
-        href="#on_page_markdown"
+            href="#on_page_markdown"
             on_page_markdown [label="<markdown>markdown|<page>page|<config>config|<files>files",shape=record,style=filled,fillcolor="#ffffff99"]
             bgcolor="#ffff0066"
         }
@@ -90,7 +90,7 @@ digraph mkdocs {
         render_a -> on_page_content:content:n [style=dashed,penwidth=1.5]
         subgraph cluster_on_page_content {
             label="on_page_content"
-        href="#on_page_content"
+            href="#on_page_content"
             on_page_content [label="<content>html|<page>page|<config>config|<files>files",shape=record,fillcolor="#ffffff99"]
             bgcolor="#ffff0066"
         }
@@ -145,7 +145,7 @@ digraph mkdocs {
         get_context -> on_page_context:context:n
         subgraph cluster_on_page_context {
             label="on_page_context"
-        href="#on_page_context"
+            href="#on_page_context"
             on_page_context [label="<context>context|<page>page|<config>config|<nav>nav",shape=record,fillcolor="#ffffff99"]
             bgcolor="#ffff0066"
         }
