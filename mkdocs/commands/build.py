@@ -36,9 +36,9 @@ def get_context(nav, files, config, page=None, base_url=''):
     if page is not None:
         base_url = utils.get_relative_url('.', page.url)
 
-    extra_javascript = utils.create_media_urls(config['extra_javascript'], page, base_url)
+    extra_javascript = utils.create_media_urls(config['site_dir'], config['extra_javascript'], page, base_url)
 
-    extra_css = utils.create_media_urls(config['extra_css'], page, base_url)
+    extra_css = utils.create_media_urls(config['site_dir'], config['extra_css'], page, base_url)
 
     if isinstance(files, Files):
         files = files.documentation_pages()

@@ -14,6 +14,7 @@ import yaml
 import fnmatch
 import posixpath
 import functools
+import hashlib
 import importlib_metadata
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -296,10 +297,22 @@ def _get_rel_path(path, base, base_is_url):
         return posixpath.join(base, path)
 
 
-def create_media_urls(path_list, page=None, base=''):
+@functools.lru_cache()
+def _file_digest(filename):
+    with open(filename, 'rb') as f:
+        content = f.read()
+    return hashlib.sha256(content).hexdigest()[:8]
+
+
+def create_media_urls(site_dir, path_list, page=None, base=''):
     """
     Return a list of URLs relative to the given page or using the base.
     """
+    for i, path in enumerate(path_list):
+        try:
+            path_list[i] += '?' + _file_digest(os.path.join(site_dir, path))
+        except FileNotFoundError:
+            pass
     return [normalize_url(path, page, base) for path in path_list]
 
 
