@@ -118,7 +118,11 @@ class LiveReloadServer(socketserver.ThreadingMixIn, wsgiref.simple_server.WSGISe
         def watch_symlink_targets(path_obj):  # path is os.DirEntry or pathlib.Path
             if path_obj.is_symlink():
                 # The extra `readlink` is needed due to https://bugs.python.org/issue9949
-                path_obj = pathlib.Path(os.fspath(path_obj)).resolve()
+                try:
+                    path_obj = pathlib.Path(path_obj).resolve()
+                except (OSError, RuntimeError):  # Bad symlinks
+                    log.debug(f"Skipping unresolvable symlink '{os.fspath(path_obj)}'")
+                    return
                 if path_obj in seen or not path_obj.exists():
                     return
                 schedule(path_obj)
