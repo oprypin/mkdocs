@@ -68,7 +68,7 @@ All `BasePlugin` subclasses contain the following attributes:
 
 #### config_scheme
 
-:   A tuple of configuration validation instances. Each item must consist of a
+*   A tuple of configuration validation instances. Each item must consist of a
     two item tuple in which the first item is the string name of the
     configuration option and the second item is an instance of
     `mkdocs.config.config_options.BaseConfigOption` or any of its subclasses.
@@ -93,7 +93,7 @@ All `BasePlugin` subclasses contain the following attributes:
 
 #### config
 
-:   A dictionary of configuration options for the plugin, which is populated by
+*   A dictionary of configuration options for the plugin, which is populated by
     the `load_config` method after configuration validation has completed. Use
     this attribute to access options provided by the user.
 
@@ -105,13 +105,13 @@ All `BasePlugin` subclasses contain the following method(s):
 
 #### load_config(options)
 
-:   Loads configuration from a dictionary of options. Returns a tuple of
+*   Loads configuration from a dictionary of options. Returns a tuple of
     `(errors, warnings)`. This method is called by MkDocs during configuration
     validation and should not need to be called by the plugin.
 
 #### on_&lt;event_name&gt;()
 
-:   Optional methods which define the behavior for specific [events]. The plugin
+*   Optional methods which define the behavior for specific [events]. The plugin
     should define its behavior within these methods. Replace `<event_name>` with
     the actual name of the event. For example, the `pre_build` event would be
     defined in the `on_pre_build` method.
@@ -138,6 +138,24 @@ All `BasePlugin` subclasses contain the following method(s):
 
 There are three kinds of events: [Global Events], [Page Events] and
 [Template Events].
+
+<details class="card">
+  <summary class="card-header">
+    See a diagram with relations between all the plugin events
+  </summary>
+  <div class="card-body">
+    <ul>
+      <li>The events themselves are shown in yellow, with their parameters.
+      <li>Arrows show the flow of arguments and outputs of each event.
+          Sometimes they're omitted.
+      <li>The events are chronologically ordered from top to bottom.
+      <li>Dotted lines appear at splits from global events to per-page events.
+      <li>Click the events' titles to jump to their description.
+    </ul>
+--8<-- "docs/img/plugin-events.svg"
+  </div>
+</details>
+<br>
 
 #### Global Events
 
@@ -232,23 +250,23 @@ MkDocs defines four error types:
 
 #### `mkdocs.exceptions.MkDocsException`
 
-:   The base class which all MkDocs exceptions inherit from. This should
-    not be raised directly. One of the sublcasses should be raised instead.
+*   The base class which all MkDocs exceptions inherit from. This should
+    not be raised directly. One of the subclasses should be raised instead.
 
 #### `mkdocs.exceptions.ConfigurationError`
 
-:   This error is raised by configuration validation when a validation error
+*   This error is raised by configuration validation when a validation error
     is encountered. This error should be raised by any configuration options
     defined in a plugin's [config_scheme].
 
 #### `mkdocs.exceptions.BuildError`
 
-:   This error may be raised by MkDocs during the build process. Plugins should
+*   This error may be raised by MkDocs during the build process. Plugins should
     not raise this error.
 
 #### `mkdocs.exceptions.PluginError`
 
-:   A subclass of `mkdocs.exceptions.BuildError` which can be raised by plugin
+*   A subclass of `mkdocs.exceptions.BuildError` which can be raised by plugin
     events.
 
 Unexpected and uncaught exceptions will interrupt the build process and produce
@@ -287,7 +305,7 @@ class MyPlugin(BasePlugin):
 ### Entry Point
 
 Plugins need to be packaged as Python libraries (distributed on PyPI separate
-from MkDocs) and each must register as a Plugin via a setuptools entry_point.
+from MkDocs) and each must register as a Plugin via a setuptools `entry_points`.
 Add the following to your `setup.py` script:
 
 ```python
@@ -303,7 +321,7 @@ The `pluginname` would be the name used by users (in the config file) and
 (`from path.to.some_plugin import SomePluginClass`) where `SomePluginClass` is a
 subclass of [BasePlugin] which defines the plugin behavior. Naturally, multiple
 Plugin classes could exist in the same module. Simply define each as a separate
-entry_point.
+entry point.
 
 ```python
 entry_points={
@@ -333,3 +351,4 @@ tell MkDocs to use it via the config.
 [on_build_error]: #on_build_error
 [Handling Errors]: #handling-errors
 [config_scheme]: #config_scheme
+[Template]: http://code.nabla.net/doc/jinja2/api/jinja2/environment/jinja2.environment.Template.html

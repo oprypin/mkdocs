@@ -1,5 +1,5 @@
 import logging
-from urllib.parse import urlparse
+from urllib.parse import urlsplit
 
 from mkdocs.structure.pages import Page
 from mkdocs.utils import nest_paths
@@ -41,14 +41,14 @@ class Section:
         self.is_link = False
 
     def __repr__(self):
-        return "Section(title='{}')".format(self.title)
+        return f"Section(title='{self.title}')"
 
     def _get_active(self):
-        """ Return active status of section. """
+        """Return active status of section."""
         return self.__active
 
     def _set_active(self, value):
-        """ Set active status of section and ancestors. """
+        """Set active status of section and ancestors."""
         self.__active = bool(value)
         if self.parent is not None:
             self.parent.active = bool(value)
@@ -82,8 +82,8 @@ class Link:
         self.is_link = True
 
     def __repr__(self):
-        title = "'{}'".format(self.title) if (self.title is not None) else '[blank]'
-        return "Link(title={}, url='{}')".format(title, self.url)
+        title = f"'{self.title}'" if (self.title is not None) else '[blank]'
+        return f"Link(title={title}, url='{self.url}')"
 
     @property
     def ancestors(self):
@@ -96,7 +96,7 @@ class Link:
 
 
 def get_navigation(files, config):
-    """ Build site navigation from config and files."""
+    """Build site navigation from config and files."""
     nav_config = config['nav'] or nest_paths(f.src_path for f in files.documentation_pages())
     items = _data_to_navigation(nav_config, files, config)
     if not isinstance(items, list):
@@ -114,31 +114,29 @@ def get_navigation(files, config):
         log.info(
             'The following pages exist in the docs directory, but are not '
             'included in the "nav" configuration:\n  - {}'.format(
-                '\n  - '.join([file.src_path for file in missing_from_config]))
+                '\n  - '.join([file.src_path for file in missing_from_config])
+            )
         )
         # Any documentation files not found in the nav should still have an associated page, so we
         # create them here. The Page object will automatically be assigned to `file.page` during
-        # its creation (and this is the only way in which these page objects are accessable).
+        # its creation (and this is the only way in which these page objects are accessible).
         for file in missing_from_config:
             Page(None, file, config)
 
     links = _get_by_type(items, Link)
     for link in links:
-        scheme, netloc, path, params, query, fragment = urlparse(link.url)
+        scheme, netloc, path, query, fragment = urlsplit(link.url)
         if scheme or netloc:
-            log.debug(
-                "An external link to '{}' is included in "
-                "the 'nav' configuration.".format(link.url)
-            )
+            log.debug(f"An external link to '{link.url}' is included in the 'nav' configuration.")
         elif link.url.startswith('/'):
             log.debug(
-                "An absolute path to '{}' is included in the 'nav' configuration, "
-                "which presumably points to an external resource.".format(link.url)
+                f"An absolute path to '{link.url}' is included in the 'nav' "
+                "configuration, which presumably points to an external resource."
             )
         else:
             msg = (
-                "A relative path to '{}' is included in the 'nav' configuration, "
-                "which is not found in the documentation files".format(link.url)
+                f"A relative path to '{link.url}' is included in the 'nav' "
+                "configuration, which is not found in the documentation files"
             )
             log.warning(msg)
     return Navigation(items, pages)
@@ -148,15 +146,15 @@ def _data_to_navigation(data, files, config):
     if isinstance(data, dict):
         return [
             _data_to_navigation((key, value), files, config)
-            if isinstance(value, str) else
-            Section(title=key, children=_data_to_navigation(value, files, config))
+            if isinstance(value, str)
+            else Section(title=key, children=_data_to_navigation(value, files, config))
             for key, value in data.items()
         ]
     elif isinstance(data, list):
         return [
             _data_to_navigation(item, files, config)[0]
-            if isinstance(item, dict) and len(item) == 1 else
-            _data_to_navigation(item, files, config)
+            if isinstance(item, dict) and len(item) == 1
+            else _data_to_navigation(item, files, config)
             for item in data
         ]
     title, path = data if isinstance(data, tuple) else (None, data)

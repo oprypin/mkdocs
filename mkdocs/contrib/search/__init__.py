@@ -1,44 +1,53 @@
-import os
 import logging
+import os
+
 from mkdocs import utils
-from mkdocs.plugins import BasePlugin
 from mkdocs.config import config_options
 from mkdocs.contrib.search.search_index import SearchIndex
-
+from mkdocs.plugins import BasePlugin
 
 log = logging.getLogger(__name__)
 base_path = os.path.dirname(os.path.abspath(__file__))
 
 
 class LangOption(config_options.OptionallyRequired):
-    """ Validate Language(s) provided in config are known languages. """
+    """Validate Language(s) provided in config are known languages."""
 
-    def lang_file_exists(self, lang):
-        path = os.path.join(base_path, 'lunr-language', 'lunr.{}.js'.format(lang))
-        return os.path.isfile(path)
+    def get_lunr_supported_lang(self, lang):
+        for lang_part in lang.split("_"):
+            lang_part = lang_part.lower()
+            if os.path.isfile(os.path.join(base_path, 'lunr-language', f'lunr.{lang_part}.js')):
+                return lang_part
 
     def run_validation(self, value):
         if isinstance(value, str):
             value = [value]
         elif not isinstance(value, (list, tuple)):
             raise config_options.ValidationError('Expected a list of language codes.')
-        for lang in value:
-            if lang != 'en' and not self.lang_file_exists(lang):
-                raise config_options.ValidationError(
-                    '"{}" is not a supported language code.'.format(lang)
-                )
+        for lang in list(value):
+            if lang != 'en':
+                lang_detected = self.get_lunr_supported_lang(lang)
+                if not lang_detected:
+                    log.info(f"Option search.lang '{lang}' is not supported, falling back to 'en'")
+                    value.remove(lang)
+                    if 'en' not in value:
+                        value.append('en')
+                elif lang_detected != lang:
+                    value.remove(lang)
+                    value.append(lang_detected)
+                    log.info(f"Option search.lang '{lang}' switched to '{lang_detected}'")
         return value
 
 
 class SearchPlugin(BasePlugin):
-    """ Add a search feature to MkDocs. """
+    """Add a search feature to MkDocs."""
 
     config_scheme = (
-        ('lang', LangOption(default=['en'])),
+        ('lang', LangOption()),
         ('separator', config_options.Type(str, default=r'[\s\-]+')),
         ('min_search_length', config_options.Type(int, default=3)),
         ('prebuild_index', config_options.Choice((False, True, 'node', 'python'), default=False)),
-        ('indexing', config_options.Choice(('full', 'sections', 'titles'), default='full'))
+        ('indexing', config_options.Choice(('full', 'sections', 'titles'), default='full')),
     )
 
     def on_config(self, config, **kwargs):
@@ -50,6 +59,17 @@ class SearchPlugin(BasePlugin):
             config['theme'].dirs.append(path)
             if 'search/main.js' not in config['extra_javascript']:
                 config['extra_javascript'].append('search/main.js')
+        if self.config['lang'] is None:
+            # lang setting undefined. Set default based on theme locale
+            validate = self.config_scheme[0][1].run_validation
+            self.config['lang'] = validate(config['theme']['locale'].language)
+        # The `python` method of `prebuild_index` is pending deprecation as of version 1.2.
+        # TODO: Raise a deprecation warning in a future release (1.3?).
+        if self.config['prebuild_index'] == 'python':
+            log.info(
+                "The 'python' method of the search plugin's 'prebuild_index' config option "
+                "is pending deprecation and will not be supported in a future release."
+            )
         return config
 
     def on_pre_build(self, config, **kwargs):
@@ -75,11 +95,11 @@ class SearchPlugin(BasePlugin):
                 files.append('lunr.stemmer.support.js')
             if len(self.config['lang']) > 1:
                 files.append('lunr.multi.js')
-            if ('ja' in self.config['lang'] or 'jp' in self.config['lang']):
+            if 'ja' in self.config['lang'] or 'jp' in self.config['lang']:
                 files.append('tinyseg.js')
             for lang in self.config['lang']:
-                if (lang != 'en'):
-                    files.append('lunr.{}.js'.format(lang))
+                if lang != 'en':
+                    files.append(f'lunr.{lang}.js')
 
             for filename in files:
                 from_path = os.path.join(base_path, 'lunr-language', filename)

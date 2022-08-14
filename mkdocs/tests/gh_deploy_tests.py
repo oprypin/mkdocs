@@ -1,29 +1,15 @@
 import unittest
 from unittest import mock
+
 from ghp_import import GhpError
 
-from mkdocs.tests.base import load_config
+from mkdocs import __version__
 from mkdocs.commands import gh_deploy
 from mkdocs.exceptions import Abort
-from mkdocs import __version__
+from mkdocs.tests.base import load_config
 
 
 class TestGitHubDeploy(unittest.TestCase):
-
-    def assert_mock_called_once(self, mock):
-        """assert that the mock was called only once.
-
-        The `mock.assert_called_once()` method was added in PY36.
-        TODO: Remove this when PY35 support is dropped.
-        """
-        try:
-            mock.assert_called_once()
-        except AttributeError:
-            if not mock.call_count == 1:
-                msg = ("Expected '%s' to have been called once. Called %s times." %
-                       (mock._mock_name or 'mock', self.call_count))
-                raise AssertionError(msg)
-
     @mock.patch('subprocess.Popen')
     def test_is_cwd_git_repo(self, mock_popeno):
 
@@ -50,7 +36,7 @@ class TestGitHubDeploy(unittest.TestCase):
 
         mock_popeno().communicate.return_value = (
             b'git@github.com:mkdocs/mkdocs.git\n',
-            b''
+            b'',
         )
 
         expected = ('git@', 'mkdocs/mkdocs.git')
@@ -61,7 +47,7 @@ class TestGitHubDeploy(unittest.TestCase):
 
         mock_popeno().communicate.return_value = (
             b'https://github.com/mkdocs/mkdocs.git\n',
-            b''
+            b'',
         )
 
         expected = ('https://', 'mkdocs/mkdocs.git')
@@ -72,7 +58,7 @@ class TestGitHubDeploy(unittest.TestCase):
 
         mock_popeno().communicate.return_value = (
             b'https://notgh.com/mkdocs/mkdocs.git\n',
-            b''
+            b'',
         )
 
         expected = (None, None)
@@ -96,8 +82,9 @@ class TestGitHubDeploy(unittest.TestCase):
     @mock.patch('mkdocs.commands.gh_deploy._check_version')
     @mock.patch('ghp_import.ghp_import')
     @mock.patch('os.path.isfile', return_value=False)
-    def test_deploy_no_cname(self, mock_isfile, mock_import, check_version, get_remote,
-                             get_sha, is_repo):
+    def test_deploy_no_cname(
+        self, mock_isfile, mock_import, check_version, get_remote, get_sha, is_repo
+    ):
 
         config = load_config(
             remote_branch='test',
@@ -106,8 +93,9 @@ class TestGitHubDeploy(unittest.TestCase):
 
     @mock.patch('mkdocs.commands.gh_deploy._is_cwd_git_repo', return_value=True)
     @mock.patch('mkdocs.commands.gh_deploy._get_current_sha', return_value='shashas')
-    @mock.patch('mkdocs.commands.gh_deploy._get_remote_url', return_value=(
-        'git@', 'mkdocs/mkdocs.git'))
+    @mock.patch(
+        'mkdocs.commands.gh_deploy._get_remote_url', return_value=('git@', 'mkdocs/mkdocs.git')
+    )
     @mock.patch('mkdocs.commands.gh_deploy._check_version')
     @mock.patch('ghp_import.ghp_import')
     def test_deploy_hostname(self, mock_import, check_version, get_remote, get_sha, is_repo):
@@ -122,13 +110,15 @@ class TestGitHubDeploy(unittest.TestCase):
     @mock.patch('mkdocs.commands.gh_deploy._get_remote_url', return_value=(None, None))
     @mock.patch('mkdocs.commands.gh_deploy._check_version')
     @mock.patch('ghp_import.ghp_import')
-    def test_deploy_ignore_version_default(self, mock_import, check_version, get_remote, get_sha, is_repo):
+    def test_deploy_ignore_version_default(
+        self, mock_import, check_version, get_remote, get_sha, is_repo
+    ):
 
         config = load_config(
             remote_branch='test',
         )
         gh_deploy.gh_deploy(config)
-        self.assert_mock_called_once(check_version)
+        check_version.assert_called_once()
 
     @mock.patch('mkdocs.commands.gh_deploy._is_cwd_git_repo', return_value=True)
     @mock.patch('mkdocs.commands.gh_deploy._get_current_sha', return_value='shashas')
@@ -156,37 +146,50 @@ class TestGitHubDeploy(unittest.TestCase):
             remote_branch='test',
         )
 
-        self.assertRaises(Abort, gh_deploy.gh_deploy, config)
+        with self.assertRaises(Abort):
+            gh_deploy.gh_deploy(config)
         mock_log.error.assert_called_once_with(
-            'Failed to deploy to GitHub with error: \n{}'.format(error_string)
+            f'Failed to deploy to GitHub with error: \n{error_string}'
         )
 
 
 class TestGitHubDeployLogs(unittest.TestCase):
-
     @mock.patch('subprocess.Popen')
     def test_mkdocs_newer(self, mock_popeno):
 
-        mock_popeno().communicate.return_value = (b'Deployed 12345678 with MkDocs version: 0.1.2\n', b'')
+        mock_popeno().communicate.return_value = (
+            b'Deployed 12345678 with MkDocs version: 0.1.2\n',
+            b'',
+        )
 
         with self.assertLogs('mkdocs', level='INFO') as cm:
             gh_deploy._check_version('gh-pages')
         self.assertEqual(
-            cm.output, ['INFO:mkdocs.commands.gh_deploy:Previous deployment was done with MkDocs '
-                        'version 0.1.2; you are deploying with a newer version ({})'.format(__version__)]
+            cm.output,
+            [
+                'INFO:mkdocs.commands.gh_deploy:Previous deployment was done with MkDocs '
+                f'version 0.1.2; you are deploying with a newer version ({__version__})'
+            ],
         )
 
     @mock.patch('subprocess.Popen')
     def test_mkdocs_older(self, mock_popeno):
 
-        mock_popeno().communicate.return_value = (b'Deployed 12345678 with MkDocs version: 10.1.2\n', b'')
+        mock_popeno().communicate.return_value = (
+            b'Deployed 12345678 with MkDocs version: 10.1.2\n',
+            b'',
+        )
 
         with self.assertLogs('mkdocs', level='ERROR') as cm:
-            self.assertRaises(Abort, gh_deploy._check_version, 'gh-pages')
+            with self.assertRaises(Abort):
+                gh_deploy._check_version('gh-pages')
         self.assertEqual(
-            cm.output, ['ERROR:mkdocs.commands.gh_deploy:Deployment terminated: Previous deployment was made with '
-                        'MkDocs version 10.1.2; you are attempting to deploy with an older version ({}). Use '
-                        '--ignore-version to deploy anyway.'.format(__version__)]
+            cm.output,
+            [
+                'ERROR:mkdocs.commands.gh_deploy:Deployment terminated: Previous deployment was made with '
+                f'MkDocs version 10.1.2; you are attempting to deploy with an older version ({__version__}).'
+                ' Use --ignore-version to deploy anyway.'
+            ],
         )
 
     @mock.patch('subprocess.Popen')
@@ -198,5 +201,7 @@ class TestGitHubDeployLogs(unittest.TestCase):
             gh_deploy._check_version('gh-pages')
         self.assertEqual(
             cm.output,
-            ['WARNING:mkdocs.commands.gh_deploy:Version check skipped: No version specified in previous deployment.']
+            [
+                'WARNING:mkdocs.commands.gh_deploy:Version check skipped: No version specified in previous deployment.'
+            ],
         )

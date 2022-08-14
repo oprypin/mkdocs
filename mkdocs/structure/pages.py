@@ -1,7 +1,7 @@
-import os
 import logging
-from urllib.parse import urlparse, urlunparse, urljoin
+import os
 from urllib.parse import unquote as urlunquote
+from urllib.parse import urljoin, urlsplit, urlunsplit
 
 import markdown
 from markdown.extensions import Extension
@@ -9,7 +9,7 @@ from markdown.treeprocessors import Treeprocessor
 from markdown.util import AMP_SUBSTITUTE
 
 from mkdocs.structure.toc import get_toc
-from mkdocs.utils import meta, get_build_date, get_markdown_title
+from mkdocs.utils import get_build_date, get_markdown_title, meta
 
 log = logging.getLogger(__name__)
 
@@ -44,27 +44,25 @@ class Page:
 
     def __eq__(self, other):
         return (
-            isinstance(other, self.__class__) and
-            self.title == other.title and
-            self.file == other.file
+            isinstance(other, self.__class__)
+            and self.title == other.title
+            and self.file == other.file
         )
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     def __repr__(self):
-        title = "'{}'".format(self.title) if (self.title is not None) else '[blank]'
-        return "Page(title={}, url='{}')".format(title, self.abs_url or self.file.url)
+        title = f"'{self.title}'" if (self.title is not None) else '[blank]'
+        url = self.abs_url or self.file.url
+        return f"Page(title={title}, url='{url}')"
 
     def _indent_print(self, depth=0):
         return '{}{}'.format('    ' * depth, repr(self))
 
     def _get_active(self):
-        """ Return active status of page. """
+        """Return active status of page."""
         return self.__active
 
     def _set_active(self, value):
-        """ Set active status of page and ancestors. """
+        """Set active status of page and ancestors."""
         self.__active = bool(value)
         if self.parent is not None:
             self.parent.active = bool(value)
@@ -98,7 +96,7 @@ class Page:
             if not base.endswith('/'):
                 base += '/'
             self.canonical_url = urljoin(base, self.url)
-            self.abs_url = urlparse(self.canonical_url).path
+            self.abs_url = urlsplit(self.canonical_url).path
         else:
             self.canonical_url = None
             self.abs_url = None
@@ -106,23 +104,24 @@ class Page:
     def _set_edit_url(self, repo_url, edit_uri):
         if repo_url and edit_uri:
             src_path = self.file.src_path.replace('\\', '/')
+            # Ensure urljoin behavior is correct
+            if not edit_uri.startswith(('?', '#')) and not repo_url.endswith('/'):
+                repo_url += '/'
             self.edit_url = urljoin(repo_url, edit_uri + src_path)
         else:
             self.edit_url = None
 
     def read_source(self, config):
-        source = config['plugins'].run_event(
-            'page_read_source', page=self, config=config
-        )
+        source = config['plugins'].run_event('page_read_source', page=self, config=config)
         if source is None:
             try:
-                with open(self.file.abs_src_path, 'r', encoding='utf-8-sig', errors='strict') as f:
+                with open(self.file.abs_src_path, encoding='utf-8-sig', errors='strict') as f:
                     source = f.read()
             except OSError:
-                log.error('File not found: {}'.format(self.file.src_path))
+                log.error(f'File not found: {self.file.src_path}')
                 raise
             except ValueError:
-                log.error('Encoding error reading file: {}'.format(self.file.src_path))
+                log.error(f'Encoding error reading file: {self.file.src_path}')
                 raise
 
         self.markdown, self.meta = meta.get_data(source)
@@ -163,13 +162,11 @@ class Page:
         Convert the Markdown source file to HTML as per the config.
         """
 
-        extensions = [
-            _RelativePathExtension(self.file, files)
-        ] + config['markdown_extensions']
+        extensions = [_RelativePathExtension(self.file, files)] + config['markdown_extensions']
 
         md = markdown.Markdown(
             extensions=extensions,
-            extension_configs=config['mdx_configs'] or {}
+            extension_configs=config['mdx_configs'] or {},
         )
         self.content = md.convert(self.markdown)
         self.toc = get_toc(getattr(md, 'toc_tokens', []))
@@ -202,10 +199,17 @@ class _RelativePathTreeprocessor(Treeprocessor):
         return root
 
     def path_to_url(self, url):
-        scheme, netloc, path, params, query, fragment = urlparse(url)
+        scheme, netloc, path, query, fragment = urlsplit(url)
 
-        if (scheme or netloc or not path or url.startswith('/') or url.startswith('\\')
-                or AMP_SUBSTITUTE in url or '.' not in os.path.split(path)[-1]):
+        if (
+            scheme
+            or netloc
+            or not path
+            or url.startswith('/')
+            or url.startswith('\\')
+            or AMP_SUBSTITUTE in url
+            or '.' not in os.path.split(path)[-1]
+        ):
             # Ignore URLs unless they are a relative link to a source file.
             # AMP_SUBSTITUTE is used internally by Markdown only for email.
             # No '.' in the last part of a path indicates path does not point to a file.
@@ -218,14 +222,14 @@ class _RelativePathTreeprocessor(Treeprocessor):
         # Validate that the target exists in files collection.
         if target_path not in self.files:
             log.warning(
-                "Documentation file '{}' contains a link to '{}' which is not found "
-                "in the documentation files.".format(self.file.src_path, target_path)
+                f"Documentation file '{self.file.src_path}' contains a link to "
+                f"'{target_path}' which is not found in the documentation files."
             )
             return url
         target_file = self.files.get_file_from_path(target_path)
         path = target_file.url_relative_to(self.file)
-        components = (scheme, netloc, path, params, query, fragment)
-        return urlunparse(components)
+        components = (scheme, netloc, path, query, fragment)
+        return urlunsplit(components)
 
 
 class _RelativePathExtension(Extension):

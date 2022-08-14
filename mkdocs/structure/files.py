@@ -1,17 +1,16 @@
 import fnmatch
-import os
 import logging
-from functools import cmp_to_key
+import os
 from urllib.parse import quote as urlquote
 
 from mkdocs import utils
-
 
 log = logging.getLogger(__name__)
 
 
 class Files:
-    """ A collection of File objects. """
+    """A collection of File objects."""
+
     def __init__(self, files):
         self._files = files
 
@@ -29,54 +28,58 @@ class Files:
         return {file.src_path: file for file in self._files}
 
     def get_file_from_path(self, path):
-        """ Return a File instance with File.src_path equal to path. """
+        """Return a File instance with File.src_path equal to path."""
         return self.src_paths.get(os.path.normpath(path))
 
     def append(self, file):
-        """ Append file to Files collection. """
+        """Append file to Files collection."""
         self._files.append(file)
 
     def remove(self, file):
-        """ Remove file from Files collection. """
+        """Remove file from Files collection."""
         self._files.remove(file)
 
     def copy_static_files(self, dirty=False):
-        """ Copy static files from source to destination. """
+        """Copy static files from source to destination."""
         for file in self:
             if not file.is_documentation_page():
                 file.copy_file(dirty)
 
     def documentation_pages(self):
-        """ Return iterable of all Markdown page file objects. """
+        """Return iterable of all Markdown page file objects."""
         return [file for file in self if file.is_documentation_page()]
 
     def static_pages(self):
-        """ Return iterable of all static page file objects. """
+        """Return iterable of all static page file objects."""
         return [file for file in self if file.is_static_page()]
 
     def media_files(self):
-        """ Return iterable of all file objects which are not documentation or static pages. """
+        """Return iterable of all file objects which are not documentation or static pages."""
         return [file for file in self if file.is_media_file()]
 
     def javascript_files(self):
-        """ Return iterable of all javascript file objects. """
+        """Return iterable of all javascript file objects."""
         return [file for file in self if file.is_javascript()]
 
     def css_files(self):
-        """ Return iterable of all CSS file objects. """
+        """Return iterable of all CSS file objects."""
         return [file for file in self if file.is_css()]
 
     def add_files_from_theme(self, env, config):
-        """ Retrieve static files from Jinja environment and add to collection. """
+        """Retrieve static files from Jinja environment and add to collection."""
+
         def filter(name):
             # '.*' filters dot files/dirs at root level whereas '*/.*' filters nested levels
             patterns = ['.*', '*/.*', '*.py', '*.pyc', '*.html', '*readme*', 'mkdocs_theme.yml']
-            patterns.extend('*{}'.format(x) for x in utils.markdown_extensions)
+            # Exclude translation files
+            patterns.append("locales/*")
+            patterns.extend(f'*{x}' for x in utils.markdown_extensions)
             patterns.extend(config['theme'].static_templates)
             for pattern in patterns:
                 if fnmatch.fnmatch(name.lower(), pattern):
                     return False
             return True
+
         for path in env.list_templates(filter_func=filter):
             # Theme files do not override docs_dir files
             path = os.path.normpath(path)
@@ -84,7 +87,9 @@ class Files:
                 for dir in config['theme'].dirs:
                     # Find the first theme dir which contains path
                     if os.path.isfile(os.path.join(dir, path)):
-                        self.append(File(path, dir, config['site_dir'], config['use_directory_urls']))
+                        self.append(
+                            File(path, dir, config['site_dir'], config['use_directory_urls'])
+                        )
                         break
 
 
@@ -120,6 +125,7 @@ class File:
     File.url
         The url of the destination file relative to the destination directory as a string.
     """
+
     def __init__(self, path, src_dir, dest_dir, use_directory_urls):
         self.page = None
         self.src_path = os.path.normpath(path)
@@ -131,23 +137,26 @@ class File:
 
     def __eq__(self, other):
         return (
-            isinstance(other, self.__class__) and
-            self.src_path == other.src_path and
-            self.abs_src_path == other.abs_src_path and
-            self.url == other.url
+            isinstance(other, self.__class__)
+            and self.src_path == other.src_path
+            and self.abs_src_path == other.abs_src_path
+            and self.url == other.url
         )
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    def __repr__(self):
+        return (
+            f"File(src_path='{self.src_path}', dest_path='{self.dest_path}',"
+            f" name='{self.name}', url='{self.url}')"
+        )
 
     def _get_stem(self):
-        """ Return the name of the file without it's extension. """
+        """Return the name of the file without it's extension."""
         filename = os.path.basename(self.src_path)
         stem, ext = os.path.splitext(filename)
         return 'index' if stem in ('index', 'README') else stem
 
     def _get_dest_path(self, use_directory_urls):
-        """ Return destination path based on source path. """
+        """Return destination path based on source path."""
         if self.is_documentation_page():
             parent, filename = os.path.split(self.src_path)
             if not use_directory_urls or self.name == 'index':
@@ -160,7 +169,7 @@ class File:
         return self.src_path
 
     def _get_url(self, use_directory_urls):
-        """ Return url based in destination path. """
+        """Return url based in destination path."""
         url = self.dest_path.replace(os.path.sep, '/')
         dirname, filename = os.path.split(url)
         if use_directory_urls and filename == 'index.html':
@@ -171,15 +180,15 @@ class File:
         return urlquote(url)
 
     def url_relative_to(self, other):
-        """ Return url for file relative to other file. """
+        """Return url for file relative to other file."""
         return utils.get_relative_url(self.url, other.url if isinstance(other, File) else other)
 
     def copy_file(self, dirty=False):
-        """ Copy source file to destination, ensuring parent directories exist. """
+        """Copy source file to destination, ensuring parent directories exist."""
         if dirty and not self.is_modified():
-            log.debug("Skip copying unmodified file: '{}'".format(self.src_path))
+            log.debug(f"Skip copying unmodified file: '{self.src_path}'")
         else:
-            log.debug("Copying media file: '{}'".format(self.src_path))
+            log.debug(f"Copying media file: '{self.src_path}'")
             utils.copy_file(self.abs_src_path, self.abs_dest_path)
 
     def is_modified(self):
@@ -188,38 +197,28 @@ class File:
         return True
 
     def is_documentation_page(self):
-        """ Return True if file is a Markdown page. """
-        return os.path.splitext(self.src_path)[1] in utils.markdown_extensions
+        """Return True if file is a Markdown page."""
+        return utils.is_markdown_file(self.src_path)
 
     def is_static_page(self):
-        """ Return True if file is a static page (html, xml, json). """
-        return os.path.splitext(self.src_path)[1] in (
-            '.html',
-            '.htm',
-            '.xml',
-            '.json',
-        )
+        """Return True if file is a static page (html, xml, json)."""
+        return self.src_path.endswith(('.html', '.htm', '.xml', '.json'))
 
     def is_media_file(self):
-        """ Return True if file is not a documentation or static page. """
+        """Return True if file is not a documentation or static page."""
         return not (self.is_documentation_page() or self.is_static_page())
 
     def is_javascript(self):
-        """ Return True if file is a JavaScript file. """
-        return os.path.splitext(self.src_path)[1] in (
-            '.js',
-            '.javascript',
-        )
+        """Return True if file is a JavaScript file."""
+        return self.src_path.endswith(('.js', '.javascript'))
 
     def is_css(self):
-        """ Return True if file is a CSS file. """
-        return os.path.splitext(self.src_path)[1] in (
-            '.css',
-        )
+        """Return True if file is a CSS file."""
+        return self.src_path.endswith('.css')
 
 
 def get_files(config):
-    """ Walk the `docs_dir` and return a Files collection. """
+    """Walk the `docs_dir` and return a Files collection."""
     files = []
     exclude = ['.*', '/templates']
 
@@ -239,31 +238,31 @@ def get_files(config):
             if _filter_paths(basename=filename, path=path, is_dir=False, exclude=exclude):
                 continue
             # Skip README.md if an index file also exists in dir
-            if filename.lower() == 'readme.md' and 'index.md' in filenames:
-                log.warning("Both index.md and readme.md found. Skipping readme.md from {}".format(source_dir))
+            if filename == 'README.md' and 'index.md' in filenames:
+                log.warning(
+                    f"Both index.md and README.md found. Skipping README.md from {source_dir}"
+                )
                 continue
-            files.append(File(path, config['docs_dir'], config['site_dir'], config['use_directory_urls']))
+            files.append(
+                File(path, config['docs_dir'], config['site_dir'], config['use_directory_urls'])
+            )
 
     return Files(files)
 
 
 def _sort_files(filenames):
-    """ Always sort `index` or `README` as first filename in list. """
+    """Always sort `index` or `README` as first filename in list."""
 
-    def compare(x, y):
-        if x == y:
-            return 0
-        if os.path.splitext(y)[0] in ['index', 'README']:
-            return 1
-        if os.path.splitext(x)[0] in ['index', 'README'] or x < y:
-            return -1
-        return 1
+    def key(f):
+        if os.path.splitext(f)[0] in ['index', 'README']:
+            return (0,)
+        return (1, f)
 
-    return sorted(filenames, key=cmp_to_key(compare))
+    return sorted(filenames, key=key)
 
 
 def _filter_paths(basename, path, is_dir, exclude):
-    """ .gitignore style file filtering. """
+    """.gitignore style file filtering."""
     for item in exclude:
         # Items ending in '/' apply only to directories.
         if item.endswith('/') and not is_dir:

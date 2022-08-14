@@ -9,20 +9,26 @@ from mkdocs.config.config_options import BaseConfigOption
 
 
 class ConfigBaseTests(unittest.TestCase):
-
     def test_unrecognised_keys(self):
 
         c = base.Config(schema=defaults.get_schema())
-        c.load_dict({
-            'not_a_valid_config_option': "test"
-        })
+        c.load_dict(
+            {
+                'not_a_valid_config_option': "test",
+            }
+        )
 
         failed, warnings = c.validate()
 
-        self.assertEqual(warnings, [
-            ('not_a_valid_config_option',
-                'Unrecognised configuration name: not_a_valid_config_option')
-        ])
+        self.assertEqual(
+            warnings,
+            [
+                (
+                    'not_a_valid_config_option',
+                    'Unrecognised configuration name: not_a_valid_config_option',
+                )
+            ],
+        )
 
     def test_missing_required(self):
 
@@ -54,13 +60,82 @@ class ConfigBaseTests(unittest.TestCase):
             self.assertTrue(isinstance(cfg, base.Config))
             self.assertEqual(cfg['site_name'], 'MkDocs Test')
         finally:
-            os.remove(config_file.name)
+            temp_dir.cleanup()
+
+    def test_load_default_file(self):
+        """
+        test that `mkdocs.yml` will be loaded when '--config' is not set.
+        """
+
+        temp_dir = TemporaryDirectory()
+        config_file = open(os.path.join(temp_dir.name, 'mkdocs.yml'), 'w')
+        os.mkdir(os.path.join(temp_dir.name, 'docs'))
+        old_dir = os.getcwd()
+        try:
+            os.chdir(temp_dir.name)
+            config_file.write("site_name: MkDocs Test\n")
+            config_file.flush()
+            config_file.close()
+
+            cfg = base.load_config(config_file=None)
+            self.assertTrue(isinstance(cfg, base.Config))
+            self.assertEqual(cfg['site_name'], 'MkDocs Test')
+        finally:
+            os.chdir(old_dir)
+            temp_dir.cleanup()
+
+    def test_load_default_file_with_yaml(self):
+        """
+        test that `mkdocs.yml` will be loaded when '--config' is not set.
+        """
+
+        temp_dir = TemporaryDirectory()
+        config_file = open(os.path.join(temp_dir.name, 'mkdocs.yaml'), 'w')
+        os.mkdir(os.path.join(temp_dir.name, 'docs'))
+        old_dir = os.getcwd()
+        try:
+            os.chdir(temp_dir.name)
+            config_file.write("site_name: MkDocs Test\n")
+            config_file.flush()
+            config_file.close()
+
+            cfg = base.load_config(config_file=None)
+            self.assertTrue(isinstance(cfg, base.Config))
+            self.assertEqual(cfg['site_name'], 'MkDocs Test')
+        finally:
+            os.chdir(old_dir)
+            temp_dir.cleanup()
+
+    def test_load_default_file_prefer_yml(self):
+        """
+        test that `mkdocs.yml` will be loaded when '--config' is not set.
+        """
+
+        temp_dir = TemporaryDirectory()
+        config_file1 = open(os.path.join(temp_dir.name, 'mkdocs.yml'), 'w')
+        config_file2 = open(os.path.join(temp_dir.name, 'mkdocs.yaml'), 'w')
+        os.mkdir(os.path.join(temp_dir.name, 'docs'))
+        old_dir = os.getcwd()
+        try:
+            os.chdir(temp_dir.name)
+            config_file1.write("site_name: MkDocs Test1\n")
+            config_file1.flush()
+            config_file1.close()
+            config_file2.write("site_name: MkDocs Test2\n")
+            config_file2.flush()
+            config_file2.close()
+
+            cfg = base.load_config(config_file=None)
+            self.assertTrue(isinstance(cfg, base.Config))
+            self.assertEqual(cfg['site_name'], 'MkDocs Test1')
+        finally:
+            os.chdir(old_dir)
             temp_dir.cleanup()
 
     def test_load_from_missing_file(self):
 
-        self.assertRaises(exceptions.ConfigurationError,
-                          base.load_config, config_file='missing_file.yml')
+        with self.assertRaises(exceptions.ConfigurationError):
+            base.load_config(config_file='missing_file.yml')
 
     def test_load_from_open_file(self):
         """
@@ -118,8 +193,8 @@ class ConfigBaseTests(unittest.TestCase):
             config_file.close()
         finally:
             os.remove(config_file.name)
-        self.assertRaises(exceptions.ConfigurationError,
-                          base.load_config, config_file=config_file)
+        with self.assertRaises(exceptions.ConfigurationError):
+            base.load_config(config_file=config_file)
 
     def test_load_missing_required(self):
         """
@@ -128,13 +203,12 @@ class ConfigBaseTests(unittest.TestCase):
 
         config_file = tempfile.NamedTemporaryFile('w', delete=False)
         try:
-            config_file.write(
-                "site_dir: output\nsite_uri: https://www.mkdocs.org\n")
+            config_file.write("site_dir: output\nsite_uri: https://www.mkdocs.org\n")
             config_file.flush()
             config_file.close()
 
-            self.assertRaises(exceptions.Abort,
-                              base.load_config, config_file=config_file.name)
+            with self.assertRaises(exceptions.Abort):
+                base.load_config(config_file=config_file.name)
         finally:
             os.remove(config_file.name)
 
@@ -143,7 +217,7 @@ class ConfigBaseTests(unittest.TestCase):
             def pre_validation(self, config, key_name):
                 raise base.ValidationError('pre_validation error')
 
-        c = base.Config(schema=(('invalid_option', InvalidConfigOption()), ))
+        c = base.Config(schema=(('invalid_option', InvalidConfigOption()),))
 
         errors, warnings = c.validate()
 
@@ -158,7 +232,7 @@ class ConfigBaseTests(unittest.TestCase):
             def run_validation(self, value):
                 raise base.ValidationError('run_validation error')
 
-        c = base.Config(schema=(('invalid_option', InvalidConfigOption()), ))
+        c = base.Config(schema=(('invalid_option', InvalidConfigOption()),))
 
         errors, warnings = c.validate()
 
@@ -173,7 +247,7 @@ class ConfigBaseTests(unittest.TestCase):
             def post_validation(self, config, key_name):
                 raise base.ValidationError('post_validation error')
 
-        c = base.Config(schema=(('invalid_option', InvalidConfigOption()), ))
+        c = base.Config(schema=(('invalid_option', InvalidConfigOption()),))
 
         errors, warnings = c.validate()
 
@@ -184,7 +258,8 @@ class ConfigBaseTests(unittest.TestCase):
         self.assertEqual(len(warnings), 0)
 
     def test_pre_and_run_validation_errors(self):
-        """ A pre_validation error does not stop run_validation from running. """
+        """A pre_validation error does not stop run_validation from running."""
+
         class InvalidConfigOption(BaseConfigOption):
             def pre_validation(self, config, key_name):
                 raise base.ValidationError('pre_validation error')
@@ -192,7 +267,7 @@ class ConfigBaseTests(unittest.TestCase):
             def run_validation(self, value):
                 raise base.ValidationError('run_validation error')
 
-        c = base.Config(schema=(('invalid_option', InvalidConfigOption()), ))
+        c = base.Config(schema=(('invalid_option', InvalidConfigOption()),))
 
         errors, warnings = c.validate()
 
@@ -206,7 +281,8 @@ class ConfigBaseTests(unittest.TestCase):
         self.assertEqual(len(warnings), 0)
 
     def test_run_and_post_validation_errors(self):
-        """ A run_validation error stops post_validation from running. """
+        """A run_validation error stops post_validation from running."""
+
         class InvalidConfigOption(BaseConfigOption):
             def run_validation(self, value):
                 raise base.ValidationError('run_validation error')
@@ -214,7 +290,7 @@ class ConfigBaseTests(unittest.TestCase):
             def post_validation(self, config, key_name):
                 raise base.ValidationError('post_validation error')
 
-        c = base.Config(schema=(('invalid_option', InvalidConfigOption()), ))
+        c = base.Config(schema=(('invalid_option', InvalidConfigOption()),))
 
         errors, warnings = c.validate()
 
@@ -235,16 +311,19 @@ class ConfigBaseTests(unittest.TestCase):
             def post_validation(self, config, key_name):
                 self.warnings.append('post_validation warning')
 
-        c = base.Config(schema=(('invalid_option', InvalidConfigOption()), ))
+        c = base.Config(schema=(('invalid_option', InvalidConfigOption()),))
 
         errors, warnings = c.validate()
 
         self.assertEqual(len(errors), 0)
-        self.assertEqual(warnings, [
-            ('invalid_option', 'pre_validation warning'),
-            ('invalid_option', 'run_validation warning'),
-            ('invalid_option', 'post_validation warning'),
-        ])
+        self.assertEqual(
+            warnings,
+            [
+                ('invalid_option', 'pre_validation warning'),
+                ('invalid_option', 'run_validation warning'),
+                ('invalid_option', 'post_validation warning'),
+            ],
+        )
 
     def test_load_from_file_with_relative_paths(self):
         """

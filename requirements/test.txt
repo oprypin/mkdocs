@@ -1,2 +1,4 @@
 coverage
+black
+isort
 flake8

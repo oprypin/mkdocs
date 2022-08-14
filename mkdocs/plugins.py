@@ -5,28 +5,50 @@ Implements the plugin API for MkDocs.
 
 
 import logging
-import importlib_metadata
 from collections import OrderedDict
 
-from mkdocs.config.base import Config
+import importlib_metadata
 
+from mkdocs.config.base import Config
 
 log = logging.getLogger('mkdocs.plugins')
 
 
 EVENTS = (
-    'config', 'pre_build', 'files', 'nav', 'env', 'pre_template', 'template_context',
-    'post_template', 'pre_page', 'page_read_source', 'page_markdown',
-    'page_content', 'page_context', 'post_page', 'post_build', 'serve', 'build_error'
+    'config',
+    'pre_build',
+    'files',
+    'nav',
+    'env',
+    'pre_template',
+    'template_context',
+    'post_template',
+    'pre_page',
+    'page_read_source',
+    'page_markdown',
+    'page_content',
+    'page_context',
+    'post_page',
+    'post_build',
+    'serve',
+    'build_error',
 )
 
 
 def get_plugins():
-    """ Return a dict of all installed Plugins as {name: EntryPoint}. """
+    """Return a dict of all installed Plugins as {name: EntryPoint}."""
 
     plugins = importlib_metadata.entry_points(group='mkdocs.plugins')
 
-    return {plugin.name: plugin for plugin in plugins}
+    # Allow third-party plugins to override core plugins
+    pluginmap = {}
+    for plugin in plugins:
+        if plugin.name in pluginmap and plugin.value.startswith("mkdocs.contrib."):
+            continue
+
+        pluginmap[plugin.name] = plugin
+
+    return pluginmap
 
 
 class BasePlugin:
@@ -40,7 +62,7 @@ class BasePlugin:
     config = {}
 
     def load_config(self, options, config_file_path=None):
-        """ Load config from a dict of options. Returns a tuple of (errors, warnings)."""
+        """Load config from a dict of options. Returns a tuple of (errors, warnings)."""
 
         self.config = Config(schema=self.config_scheme, config_file_path=config_file_path)
         self.config.load_dict(options)
@@ -124,7 +146,7 @@ class BasePlugin:
     def on_env(self, env, config, files):
         """
         The `env` event is called after the Jinja template environment is created
-        and can be used to alter the [Jinja environment](https://jinja.palletsprojects.com/en/master/api/#jinja2.Environment).
+        and can be used to alter the [Jinja environment](https://jinja.palletsprojects.com/en/latest/api/#jinja2.Environment).
 
         Parameters:
             env: global Jinja environment
@@ -162,15 +184,15 @@ class BasePlugin:
     def on_pre_template(self, template, template_name, config):
         """
         The `pre_template` event is called immediately after the subject template is
-        loaded and can be used to alter the content of the template.
+        loaded and can be used to alter the template.
 
         Parameters:
-            template: the template contents as string
+            template: a Jinja2 [Template](https://jinja.palletsprojects.com/en/latest/api/#jinja2.Template) object
             template_name: string filename of template
             config: global configuration object
 
         Returns:
-            template contents as string
+            a Jinja2 [Template](https://jinja.palletsprojects.com/en/latest/api/#jinja2.Template) object
         """
         return template
 
@@ -322,9 +344,10 @@ class PluginCollection(OrderedDict):
     def __setitem__(self, key, value, **kwargs):
         if not isinstance(value, BasePlugin):
             raise TypeError(
-                '{0}.{1} only accepts values which are instances of {2}.{3} '
-                'sublcasses'.format(self.__module__, self.__name__,
-                                    BasePlugin.__module__, BasePlugin.__name__))
+                f'{self.__module__}.{self.__name__} only accepts values which'
+                f' are instances of {BasePlugin.__module__}.{BasePlugin.__name__}'
+                ' subclasses'
+            )
         super().__setitem__(key, value, **kwargs)
 
     def run_event(self, name, item=None, **kwargs):
