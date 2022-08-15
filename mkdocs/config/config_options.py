@@ -331,6 +331,9 @@ class FilesystemObject(Type):
     Base class for options that point to filesystem objects.
     """
 
+    existence_test: Callable[[str], bool]
+    name: str
+
     def __init__(self, exists=False, **kwargs):
         super().__init__(type_=str, **kwargs)
         self.exists = exists
@@ -580,6 +583,8 @@ class MarkdownExtensions(OptionallyRequired):
     options for that extension. Extension configs are set on the private setting passed to
     `configkey`. The `builtins` keyword accepts a list of extensions which cannot be overridden by
     the user. However, builtins can be duplicated to define config options for them if desired."""
+
+    configdata: dict
 
     def __init__(self, builtins=None, configkey='mdx_configs', **kwargs):
         super().__init__(**kwargs)

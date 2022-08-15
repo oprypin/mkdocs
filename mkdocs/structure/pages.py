@@ -286,13 +286,13 @@ class _RelativePathTreeprocessor(Treeprocessor):
         target_uri = posixpath.normpath(target_uri).lstrip('/')
 
         # Validate that the target exists in files collection.
-        if target_uri not in self.files:
+        target_file = self.files.get_file_from_path(target_uri)
+        if target_file is None:
             log.warning(
                 f"Documentation file '{self.file.src_uri}' contains a link to "
                 f"'{target_uri}' which is not found in the documentation files."
             )
             return url
-        target_file = self.files.get_file_from_path(target_uri)
         path = target_file.url_relative_to(self.file)
         components = (scheme, netloc, path, query, fragment)
         return urlunsplit(components)

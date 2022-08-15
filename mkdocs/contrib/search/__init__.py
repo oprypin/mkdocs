@@ -50,6 +50,8 @@ class SearchPlugin(BasePlugin):
         ('indexing', config_options.Choice(('full', 'sections', 'titles'), default='full')),
     )
 
+    search_index: SearchIndex
+
     def on_config(self, config, **kwargs):
         "Add plugin templates and scripts to config."
         if 'include_search_page' in config['theme'] and config['theme']['include_search_page']:
