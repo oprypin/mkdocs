@@ -195,10 +195,8 @@ defined by the [nav] configuration setting.
 
 [nav]: ../user-guide/configuration.md#nav
 
-::: mkdocs.structure.nav.Navigation
+::: mkdocs.structure.nav.Navigation ---
     options:
-        show_root_heading: false
-        show_root_toc_entry: true
         members: []
         heading_level: 4
 
@@ -219,6 +217,8 @@ This list is not necessarily a complete list of all site pages as it does not co
 pages which are not included in the navigation. This list does match the list
 and order of pages used for all "next page" and "previous page" links. For a
 list of all pages, use the [pages](#pages) template variable.
+
+---
 
 ##### Nav Example
 
@@ -281,10 +281,8 @@ the `page` variable contains a `page` object. The same `page` objects are used
 as `page` [navigation objects](#navigation-objects) in the global
 [navigation](#nav) and in the [pages](#pages) template variable.
 
-::: mkdocs.structure.pages.Page
+::: mkdocs.structure.pages.Page ---
     options:
-        show_root_heading: false
-        show_root_toc_entry: true
         members: []
         heading_level: 4
 
@@ -437,13 +435,11 @@ on the homepage:
         show_root_full_path: false
         heading_level: 5
 
-#### AnchorLink
+---
 
 ::: mkdocs.structure.toc.AnchorLink
     options:
-        show_root_heading: false
-        show_root_toc_entry: true
-        heading_level: 5
+        heading_level: 4
 
 ### Navigation Objects
 
@@ -464,10 +460,8 @@ URLs and are not links of any kind. However, by default, MkDocs sorts index
 pages to the top and the first child might be used as the URL for a section if a
 theme chooses to do so.
 
-::: mkdocs.structure.nav.Section
+::: mkdocs.structure.nav.Section ---
     options:
-        show_root_heading: false
-        show_root_toc_entry: true
         members: []
         heading_level: 4
 
@@ -508,15 +502,15 @@ The following attributes are available on `section` objects:
         show_root_full_path: false
         heading_level: 5
 
+---
+
 #### Link
 
 A `link` navigation object contains a link which does not point to an internal
 MkDocs page.
 
-::: mkdocs.structure.nav.Link
+::: mkdocs.structure.nav.Link ---
     options:
-        show_root_heading: false
-        show_root_toc_entry: true
         members: []
         heading_level: 4
 
@@ -561,6 +555,8 @@ The following attributes are available on `link` objects:
     options:
         show_root_full_path: false
         heading_level: 5
+
+---
 
 ### Extra Context
 

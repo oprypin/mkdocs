@@ -84,3 +84,7 @@ h5.doc-heading {
 .doc-contents {
     padding-left: 0;
 }
+.doc-object {
+    padding-left: 10px;
+    border-left: 4px solid rgba(230, 230, 230);
+}
