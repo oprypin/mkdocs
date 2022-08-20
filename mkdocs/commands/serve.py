@@ -65,7 +65,7 @@ def serve(
 
         # combine CLI watch arguments with config file values
         if config.watch is None:
-            config.watch = watch
+            config.watch = watch  # type: ignore[unreachable]
         else:
             config.watch.extend(watch)
 

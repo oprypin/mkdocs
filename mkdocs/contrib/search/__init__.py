@@ -57,8 +57,6 @@ class _PluginConfig(base.Config):
 class SearchPlugin(BasePlugin[_PluginConfig]):
     """Add a search feature to MkDocs."""
 
-    config_class = _PluginConfig
-
     def on_config(self, config: MkDocsConfig, **kwargs) -> MkDocsConfig:
         "Add plugin templates and scripts to config."
         if 'include_search_page' in config.theme and config.theme['include_search_page']:
@@ -70,7 +68,7 @@ class SearchPlugin(BasePlugin[_PluginConfig]):
                 config.extra_javascript.append('search/main.js')
         if self.config.lang is None:
             # lang setting undefined. Set default based on theme locale
-            validate = _PluginConfig.lang.run_validation
+            validate = _PluginConfig.lang.run_validation  # type: ignore[unreachable]
             self.config.lang = validate(config.theme['locale'].language)
         # The `python` method of `prebuild_index` is pending deprecation as of version 1.2.
         # TODO: Raise a deprecation warning in a future release (1.3?).
