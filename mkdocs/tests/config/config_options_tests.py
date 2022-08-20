@@ -31,7 +31,7 @@ class TestCase(unittest.TestCase):
             self.assertEqual(f'{key}="{msg}"', str(cm.exception))
 
     def get_config(self, schema: type, cfg: Dict[str, Any], warnings={}, config_file_path=None):
-        config = base.Config(base.get_schema(schema), config_file_path=config_file_path)
+        config = base.LegacyConfig(base.get_schema(schema), config_file_path=config_file_path)
         config.load_dict(cfg)
         actual_errors, actual_warnings = config.validate()
         if actual_errors:
