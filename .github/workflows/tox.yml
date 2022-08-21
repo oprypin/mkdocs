@@ -63,9 +63,6 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 14
-      - name: Install Node dependencies
-        run: |
-          npm install -g markdownlint-cli jshint csslint
       - name: Check with isort
         if: always()
         run: python -m tox -e isort && git diff --exit-code
