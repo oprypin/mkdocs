@@ -1598,5 +1598,11 @@ class CopyTest(TestCase):
                 (('foo', c.MarkdownExtensions()),),
             ),
         )
+
         copy.deepcopy(self.get_config(IpAddressTest.Schema, {'option': '1.2.3.4:5678'}))
         copy.deepcopy(IpAddressTest.Schema)
+        copy.deepcopy(base.get_schema(IpAddressTest.Schema))
+
+        copy.deepcopy(self.get_config(EditURITest.Schema, {}))
+        copy.deepcopy(EditURITest.Schema)
+        copy.deepcopy(base.get_schema(EditURITest.Schema))

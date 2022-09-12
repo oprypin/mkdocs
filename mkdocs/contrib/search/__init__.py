@@ -47,7 +47,7 @@ class LangOption(c.OptionallyRequired[List[str]]):
 
 
 class _PluginConfig(base.Config):
-    lang = LangOption()
+    lang = c.Optional(LangOption())
     separator = c.Type(str, default=r'[\s\-]+')
     min_search_length = c.Type(int, default=3)
     prebuild_index = c.Choice((False, True, 'node', 'python'), default=False)
@@ -68,7 +68,7 @@ class SearchPlugin(BasePlugin[_PluginConfig]):
                 config.extra_javascript.append('search/main.js')
         if self.config.lang is None:
             # lang setting undefined. Set default based on theme locale
-            validate = _PluginConfig.lang.run_validation  # type: ignore[unreachable]
+            validate = _PluginConfig.lang.run_validation
             self.config.lang = validate(config.theme['locale'].language)
         # The `python` method of `prebuild_index` is pending deprecation as of version 1.2.
         # TODO: Raise a deprecation warning in a future release (1.3?).
