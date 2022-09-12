@@ -139,7 +139,7 @@ class ListOfItems(Generic[T], BaseConfigOption[List[T]]):
 
     required: Union[bool, None] = None  # Only for subclasses to set.
 
-    def __init__(self, option_type: BaseConfigOption[T], default: t.Optional[List[T]] = None):
+    def __init__(self, option_type: BaseConfigOption[T], default=None):
         super().__init__()
         self.default = default
         self.option_type = option_type
