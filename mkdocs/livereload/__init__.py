@@ -90,7 +90,8 @@ class LiveReloadServer(socketserver.ThreadingMixIn, wsgiref.simple_server.WSGISe
         self.serve_thread = threading.Thread(target=lambda: self.serve_forever(shutdown_delay))
         self.observer = watchdog.observers.polling.PollingObserver(timeout=polling_interval)
 
-        self._watched_paths = {}  # Used as an ordered set.
+        self._watched_paths = {}
+        self._watch_refs = {}
 
     def watch(self, path, func=None, recursive=True):
         """Add the 'path' to watched paths, call the function and reload when any file changes under it."""
@@ -106,7 +107,9 @@ class LiveReloadServer(socketserver.ThreadingMixIn, wsgiref.simple_server.WSGISe
             )
 
         if path in self._watched_paths:
+            self._watched_paths[path] += 1
             return
+        self._watched_paths[path] = 1
 
         def callback(event):
             if event.is_directory:
@@ -119,16 +122,16 @@ class LiveReloadServer(socketserver.ThreadingMixIn, wsgiref.simple_server.WSGISe
         handler = watchdog.events.FileSystemEventHandler()
         handler.on_any_event = callback
         log.debug(f"Watching '{path}'")
-        self._watched_paths[path] = self.observer.schedule(handler, path, recursive=recursive)
-        return self._watched_paths[path]
+        self._watch_refs[path] = self.observer.schedule(handler, path, recursive=recursive)
 
     def unwatch(self, path):
         """Stop watching file changes for path."""
         path = os.path.abspath(path)
-        if path not in self._watched_paths:
-            return
-        self.observer.unschedule(self._watched_paths[path])
-        del self._watched_paths[path]
+
+        self._watched_paths[path] -= 1
+        if self._watched_paths[path] <= 0:
+            self._watched_paths.pop(path)
+            self.observer.unschedule(self._watch_refs.pop(path))
 
     def serve(self):
         self.observer.start()
