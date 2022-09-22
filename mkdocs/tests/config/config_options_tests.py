@@ -126,7 +126,7 @@ class ChoiceTest(TestCase):
         conf = self.get_config(Schema, {'option': 'python'})
         self.assertEqual(conf['option'], 'python')
 
-    def test_optional(self) -> None:
+    def test_optional(self):
         class Schema:
             option = c.Choice(('python', 'node'))
 
@@ -1244,10 +1244,11 @@ class SubConfigTest(TestCase):
 class ConfigItemsTest(TestCase):
     def test_subconfig_with_multiple_items(self):
         # This had a bug where subsequent items would get merged into the same dict.
+        class Sub:
+            value = c.Type(str)
+
         class Schema:
-            the_items = c.ConfigItems(
-                ("value", c.Type(str)),
-            )
+            the_items = c.ConfigItems(*base.get_schema(Sub))
 
         conf = self.get_config(
             Schema,
@@ -1261,13 +1262,11 @@ class ConfigItemsTest(TestCase):
         self.assertEqual(conf['the_items'], [{'value': 'a'}, {'value': 'b'}])
 
     def test_optional(self):
+        class Sub:
+            opt = c.Type(int)
+
         class Schema:
-            sub = c.ListOfItems(
-                c.SubConfig(
-                    ('opt', c.Type(int)),
-                    validate=True,
-                )
-            )
+            sub = c.ListOfItems(c.SubConfig(*base.get_schema(Sub), validate=True))
 
         conf = self.get_config(Schema, {})
         self.assertEqual(conf['sub'], [])
@@ -1284,13 +1283,11 @@ class ConfigItemsTest(TestCase):
         self.assertEqual(conf['sub'], [{'opt': 1}, {'opt': 2}])
 
     def test_required(self):
+        class Sub:
+            opt = c.Type(int, required=True)
+
         class Schema:
-            sub = c.ListOfItems(
-                c.SubConfig(
-                    ('opt', c.Type(int, required=True)),
-                    validate=True,
-                )
-            )
+            sub = c.ListOfItems(c.SubConfig(*base.get_schema(Sub), validate=True))
 
         conf = self.get_config(Schema, {})
         self.assertEqual(conf['sub'], [])
