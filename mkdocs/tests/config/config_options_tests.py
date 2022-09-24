@@ -593,7 +593,7 @@ class ListOfItemsTest(TestCase):
 
     def test_list_default(self):
         class Schema:
-            option = c.ListOfItems(c.Type(int))
+            option = c.ListOfItems(c.Type(int), default=[])
 
         conf = self.get_config(Schema, {})
         self.assertEqual(conf['option'], [])
@@ -601,15 +601,15 @@ class ListOfItemsTest(TestCase):
         conf = self.get_config(Schema, {'option': None})
         self.assertEqual(conf['option'], [])
 
-    def test_none_default(self):
+    def test_none_without_default(self):
         class Schema:
-            option = c.ListOfItems(c.Type(str), default=None)
+            option = c.ListOfItems(c.Type(str))
 
-        conf = self.get_config(Schema, {})
-        self.assertEqual(conf['option'], None)
+        with self.expect_error(option="Required configuration not provided."):
+            conf = self.get_config(Schema, {})
 
-        conf = self.get_config(Schema, {'option': None})
-        self.assertEqual(conf['option'], None)
+        with self.expect_error(option="Required configuration not provided."):
+            conf = self.get_config(Schema, {'option': None})
 
         conf = self.get_config(Schema, {'option': ['foo']})
         self.assertEqual(conf['option'], ['foo'])
@@ -1266,7 +1266,10 @@ class ConfigItemsTest(TestCase):
             opt = c.Type(int)
 
         class Schema:
-            sub = c.ListOfItems(c.SubConfig(*base.get_schema(Sub), validate=True))
+            sub = c.ListOfItems(
+                c.SubConfig(*base.get_schema(Sub), validate=True),
+                default=[],
+            )
 
         conf = self.get_config(Schema, {})
         self.assertEqual(conf['sub'], [])
@@ -1289,11 +1292,11 @@ class ConfigItemsTest(TestCase):
         class Schema:
             sub = c.ListOfItems(c.SubConfig(*base.get_schema(Sub), validate=True))
 
-        conf = self.get_config(Schema, {})
-        self.assertEqual(conf['sub'], [])
+        with self.expect_error(sub="Required configuration not provided."):
+            conf = self.get_config(Schema, {})
 
-        conf = self.get_config(Schema, {'sub': None})
-        self.assertEqual(conf['sub'], [])
+        with self.expect_error(sub="Required configuration not provided."):
+            conf = self.get_config(Schema, {'sub': None})
 
         with self.expect_error(
             sub="Sub-option 'opt' configuration error: Expected type: <class 'int'> but received: <class 'str'>"
