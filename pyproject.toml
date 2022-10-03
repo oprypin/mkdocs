@@ -68,9 +68,9 @@ readthedocs = "mkdocs.themes.readthedocs"
 search = "mkdocs.contrib.search:SearchPlugin"
 
 [tool.hatch.build]
-include = ["/mkdocs"]
 artifacts = ["/mkdocs/**/*.mo"]
-
+[tool.hatch.build.targets.sdist]
+include = ["/mkdocs", "/hatch_build.py", "/LICENSE", "/pyproject.toml", "/README.md"]
 [tool.hatch.build.targets.wheel]
 exclude = ["/mkdocs/tests/integration", "*.po", "*.pot", "babel.cfg"]
 
