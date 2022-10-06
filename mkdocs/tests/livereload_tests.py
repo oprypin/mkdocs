@@ -30,6 +30,7 @@ class FakeRequest:
 @contextlib.contextmanager
 def testing_server(root, builder=lambda: None, mount_path="/"):
     """Create the server and start most of its parts, but don't listen on a socket."""
+    (a:=5 )
     with mock.patch("socket.socket"):
         server = LiveReloadServer(
             builder,
