@@ -1,9 +1,6 @@
 name: deploy-release
 
-on:
-  push:
-    tags:
-    - '*'
+on: [push]
 
 jobs:
   pypi:
@@ -24,5 +21,6 @@ jobs:
         run: |
           hatch publish
         env:
+          HATCH_INDEX_REPO: test
           HATCH_INDEX_USER: __token__
           HATCH_INDEX_AUTH: ${{ secrets.PYPI_PASSWORD }}
