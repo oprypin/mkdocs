@@ -43,6 +43,7 @@ from yaml_env_tag import construct_env_tag
 from mkdocs import exceptions
 
 if TYPE_CHECKING:
+    from mkdocs.structure.files import Files
     from mkdocs.structure.pages import Page
 
 T = TypeVar('T')
@@ -290,11 +291,17 @@ def get_relative_url(url: str, other: str) -> str:
     return relurl + '/' if url.endswith('/') else relurl
 
 
-def normalize_url(path: str, page: Optional[Page] = None, base: str = '') -> str:
+def normalize_url(
+    path: str, page: Optional[Page] = None, base: str = '', files: Optional[Files] = None
+) -> str:
     """Return a URL relative to the given page or using the base."""
     path, is_abs = _get_norm_url(path)
     if is_abs:
         return path
+    if files is not None:
+        file = files.get_file_from_path(path)
+        if file is not None:
+            path = file.url
     if page is not None:
         return get_relative_url(path, page.url)
     return posixpath.join(base, path)
@@ -318,12 +325,15 @@ def _get_norm_url(path: str) -> Tuple[str, bool]:
 
 
 def create_media_urls(
-    path_list: List[str], page: Optional[Page] = None, base: str = ''
-) -> List[str]:
+    path_list: List[str],
+    page: Optional[Page] = None,
+    base: str = '',
+    files: Optional[Files] = None,
+):
     """
     Return a list of URLs relative to the given page or using the base.
     """
-    return [normalize_url(path, page, base) for path in path_list]
+    return [normalize_url(path, page, base, files) for path in path_list]
 
 
 def path_to_url(path):

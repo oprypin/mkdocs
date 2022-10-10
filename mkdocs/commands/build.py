@@ -4,7 +4,7 @@ import gzip
 import logging
 import os
 import time
-from typing import Any, Dict, Optional, Sequence, Set, Union
+from typing import Any, Dict, Optional, Set
 from urllib.parse import urlsplit
 
 import jinja2
@@ -14,7 +14,7 @@ import mkdocs
 from mkdocs import utils
 from mkdocs.config.defaults import MkDocsConfig
 from mkdocs.exceptions import Abort, BuildError
-from mkdocs.structure.files import File, Files, get_files
+from mkdocs.structure.files import Files, get_files
 from mkdocs.structure.nav import Navigation, get_navigation
 from mkdocs.structure.pages import Page
 
@@ -37,7 +37,7 @@ log.addFilter(DuplicateFilter())
 
 def get_context(
     nav: Navigation,
-    files: Union[Sequence[File], Files],
+    files: Files,
     config: MkDocsConfig,
     page: Optional[Page] = None,
     base_url: str = '',
@@ -48,16 +48,13 @@ def get_context(
     if page is not None:
         base_url = utils.get_relative_url('.', page.url)
 
-    extra_javascript = utils.create_media_urls(config.extra_javascript, page, base_url)
-
-    extra_css = utils.create_media_urls(config.extra_css, page, base_url)
-
-    if isinstance(files, Files):
-        files = files.documentation_pages()
+    extra_javascript = utils.create_media_urls(config.extra_javascript, page, base_url, files)
+    extra_css = utils.create_media_urls(config.extra_css, page, base_url, files)
 
     return {
         'nav': nav,
-        'pages': files,
+        '_files': files,
+        'pages': files.documentation_pages(),
         'base_url': base_url,
         'extra_css': extra_css,
         'extra_javascript': extra_javascript,
@@ -196,7 +193,7 @@ def _populate_page(page: Page, config: MkDocsConfig, files: Files, dirty: bool =
 def _build_page(
     page: Page,
     config: MkDocsConfig,
-    doc_files: Sequence[File],
+    files: Files,
     nav: Navigation,
     env: jinja2.Environment,
     dirty: bool = False,
@@ -214,7 +211,7 @@ def _build_page(
         # Activate page. Signals to theme that this is the current page.
         page.active = True
 
-        context = get_context(nav, doc_files, config, page)
+        context = get_context(nav, files, config, page)
 
         # Allow 'template:' override in md source files.
         if 'template' in page.meta:
@@ -326,7 +323,7 @@ def build(config: MkDocsConfig, live_server: bool = False, dirty: bool = False) 
         doc_files = files.documentation_pages()
         for file in doc_files:
             assert file.page is not None
-            _build_page(file.page, config, doc_files, nav, env, dirty)
+            _build_page(file.page, config, files, nav, env, dirty)
 
         # Run `post_build` plugin events.
         config.plugins.run_event('post_build', config=config)

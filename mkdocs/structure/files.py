@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import fnmatch
+import functools
+import hashlib
 import logging
 import os
 import posixpath
@@ -13,6 +15,7 @@ from typing import (
     Iterable,
     Iterator,
     List,
+    Literal,
     Mapping,
     Optional,
     Sequence,
@@ -28,6 +31,8 @@ from mkdocs.utils import weak_property
 if TYPE_CHECKING:
     from mkdocs.config.defaults import MkDocsConfig
     from mkdocs.structure.pages import Page
+else:
+    from mkdocs.config.base import Config as MkDocsConfig
 
 
 log = logging.getLogger(__name__)
@@ -130,7 +135,7 @@ class Files:
                 for dir in config.theme.dirs:
                     # Find the first theme dir which contains path
                     if os.path.isfile(os.path.join(dir, path)):
-                        self.append(File(path, dir, config.site_dir, config.use_directory_urls))
+                        self.append(File(config, path, src_dir=dir, asset_versioning='hash_rename'))
                         break
 
 
@@ -199,12 +204,45 @@ class File:
 
     page: Optional[Page]
 
-    def __init__(self, path: str, src_dir: str, dest_dir: str, use_directory_urls: bool) -> None:
+    @functools.singledispatchmethod
+    def __init__(
+        self,
+        path: str,
+        src_dir: str,
+        dest_dir: str,
+        use_directory_urls: bool,
+        asset_versioning: Literal['none', 'hash_rename', 'hash_suffix'] = 'none',
+    ):
         self.page = None
         self.src_path = path
         self.src_dir = src_dir
         self.dest_dir = dest_dir
         self.use_directory_urls = use_directory_urls
+        self.asset_versioning = asset_versioning
+
+    @__init__.register
+    def z(
+        self,
+        config: MkDocsConfig,
+        path: str,
+        *,
+        src_dir: Optional[str] = None,
+        dest_dir: Optional[str] = None,
+        use_directory_urls: Optional[bool] = None,
+        asset_versioning: Optional[Literal['none', 'hash_rename', 'hash_suffix']] = None,
+    ):
+        if src_dir is None:
+            src_dir = config.docs_dir
+        if dest_dir is None:
+            dest_dir = config.site_dir
+        if use_directory_urls is None:
+            use_directory_urls = config.use_directory_urls
+        if asset_versioning is None:
+            if any(fnmatch.fnmatch(path, pat) for pat in config['asset_patterns']):
+                asset_versioning = config.asset_versioning
+            else:
+                asset_versioning = 'none'
+        self.__init__(path, src_dir, dest_dir, use_directory_urls, asset_versioning)
 
     def __eq__(self, other) -> bool:
         return (
@@ -237,6 +275,16 @@ class File:
             else:
                 # foo.md => foo/index.html
                 return posixpath.join(parent, self.name, 'index.html')
+
+        if self.asset_versioning == 'hash_rename':
+            try:
+                suf = _hash_suffix(self.abs_src_path)
+            except FileNotFoundError:
+                pass
+            else:
+                name, ext = posixpath.splitext(self.src_uri)
+                return f'{name}.{suf}{ext}'
+
         return self.src_uri
 
     def _get_url(self, use_directory_urls: bool) -> str:
@@ -248,7 +296,13 @@ class File:
                 url = '.'
             else:
                 url = dirname + '/'
-        return urlquote(url)
+        url = urlquote(url)
+        if self.asset_versioning == 'hash_suffix':
+            try:
+                url += '?h=' + _hash_suffix(self.abs_src_path)
+            except FileNotFoundError:
+                pass
+        return url
 
     def url_relative_to(self, other: File) -> str:
         """Return url for file relative to other file."""
@@ -291,6 +345,18 @@ class File:
         return self.src_uri.endswith('.css')
 
 
+@functools.lru_cache(maxsize=None)
+def _hash_suffix(abs_src_path):
+    digest = hashlib.sha256()
+    with open(abs_src_path, 'rb') as f:
+        while True:
+            data = f.read(65536)
+            if not data:
+                break
+            digest.update(data)
+    return digest.hexdigest()[:8]
+
+
 def get_files(config: Union[MkDocsConfig, Mapping[str, Any]]) -> Files:
     """Walk the `docs_dir` and return a Files collection."""
     files = []
@@ -317,9 +383,7 @@ def get_files(config: Union[MkDocsConfig, Mapping[str, Any]]) -> Files:
                     f"Both index.md and README.md found. Skipping README.md from {source_dir}"
                 )
                 continue
-            files.append(
-                File(path, config['docs_dir'], config['site_dir'], config['use_directory_urls'])
-            )
+            files.append(File(config, path))
 
     return Files(files)
 
