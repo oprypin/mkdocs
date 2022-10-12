@@ -8,6 +8,12 @@ def get_schema() -> base.PlainConfigSchema:
     return MkDocsConfig._schema
 
 
+class ChecksConfig(base.Config):
+    absolute_link = c.LogLevel(default='ignore')
+    link_to_missing_file = c.LogLevel(default='warn')
+    not_in_nav = c.LogLevel(default='info')
+
+
 # NOTE: The order here is important. During validation some config options
 # depend on others. So, if config option A depends on B, then A should be
 # listed higher in the schema.
@@ -128,6 +134,8 @@ class MkDocsConfig(base.Config):
     hooks = c.Hooks('plugins')
     """A list of filenames that will be imported as Python modules and used as
     an instance of a plugin each."""
+
+    checks = ChecksConfig()
 
     watch = c.ListOfPaths(default=[])
     """A list of extra paths to watch while running `mkdocs serve`."""

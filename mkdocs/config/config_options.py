@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import functools
 import ipaddress
+import logging
 import os
 import string
 import sys
@@ -682,6 +683,24 @@ class ListOfPaths(ListOfItems[str]):
     def __init__(self, default=[], required=None) -> None:
         super().__init__(FilesystemObject(exists=True), default)
         self.required = required
+
+
+class LogLevel(BaseConfigOption[int]):
+    options = {
+        'INFO': logging.INFO,
+        'IGNORE': logging.DEBUG,
+        'WARN': logging.WARNING,
+        'ERROR': logging.FATAL,
+    }
+
+    def __init__(self, default: Optional[str] = None):
+        self.default = default
+
+    def run_validation(self, value: object) -> int:
+        if value not in self.options:
+            options_str = ', '.join(self.options)
+            raise ValidationError(f"Expected a string - one of {options_str}")
+        return self.options[value]
 
 
 class SiteDir(Dir):

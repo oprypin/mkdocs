@@ -145,9 +145,9 @@ class Link:
         return '{}{}'.format('    ' * depth, repr(self))
 
 
-def get_navigation(files: Files, config: Union[MkDocsConfig, Mapping[str, Any]]) -> Navigation:
+def get_navigation(files: Files, config: MkDocsConfig) -> Navigation:
     """Build site navigation from config and files."""
-    nav_config = config['nav'] or nest_paths(f.src_uri for f in files.documentation_pages())
+    nav_config = config.nav or nest_paths(f.src_uri for f in files.documentation_pages())
     items = _data_to_navigation(nav_config, files, config)
     if not isinstance(items, list):
         items = [items]
@@ -161,11 +161,11 @@ def get_navigation(files: Files, config: Union[MkDocsConfig, Mapping[str, Any]])
 
     missing_from_config = [file for file in files.documentation_pages() if file.page is None]
     if missing_from_config:
-        log.info(
-            'The following pages exist in the docs directory, but are not '
-            'included in the "nav" configuration:\n  - {}'.format(
-                '\n  - '.join(file.src_path for file in missing_from_config)
-            )
+        missing_lines = ''.join(f'\n  - {file.src_path}' for file in missing_from_config)
+        log.log(
+            config.checks.not_in_nav,
+            f'The following pages exist in the docs directory, but are not '
+            f'included in the "nav" configuration:{missing_lines}',
         )
         # Any documentation files not found in the nav should still have an associated page, so we
         # create them here. The Page object will automatically be assigned to `file.page` during
@@ -179,16 +179,17 @@ def get_navigation(files: Files, config: Union[MkDocsConfig, Mapping[str, Any]])
         if scheme or netloc:
             log.debug(f"An external link to '{link.url}' is included in the 'nav' configuration.")
         elif link.url.startswith('/'):
-            log.debug(
+            log.log(
+                config.checks.absolute_link,
                 f"An absolute path to '{link.url}' is included in the 'nav' "
-                "configuration, which presumably points to an external resource."
+                f"configuration, which presumably points to an external resource.",
             )
         else:
-            msg = (
+            log.log(
+                config.checks.link_to_missing_file,
                 f"A relative path to '{link.url}' is included in the 'nav' "
-                "configuration, which is not found in the documentation files"
+                f"configuration, which is not found in the documentation files",
             )
-            log.warning(msg)
     return Navigation(items, pages)
 
 
