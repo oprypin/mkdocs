@@ -86,6 +86,7 @@ mkdocs = "mkdocs.themes.mkdocs"
 readthedocs = "mkdocs.themes.readthedocs"
 
 [project.entry-points."mkdocs.plugins"]
+info = "mkdocs.contrib.info:InfoPlugin"
 search = "mkdocs.contrib.search:SearchPlugin"
 
 [tool.hatch.version]

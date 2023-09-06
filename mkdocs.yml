@@ -50,6 +50,7 @@ hooks:
   - docs/hooks.py
 
 plugins:
+  - info
   - search
   - redirects:
       redirect_maps:
