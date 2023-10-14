@@ -314,8 +314,8 @@ def build(
         excluded = []
         for file in files.documentation_pages(inclusion=inclusion):
             log.debug(f"Reading: {file.src_uri}")
-            if file.page is None and file.inclusion.is_excluded():
-                if live_server:
+            if file.page is None and file.inclusion.is_not_in_nav():
+                if live_server and file.inclusion.is_excluded():
                     excluded.append(urljoin(live_server.url, file.url))
                 Page(None, file, config)
             assert file.page is not None

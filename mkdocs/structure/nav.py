@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import logging
-import warnings
 from typing import TYPE_CHECKING, Iterator, TypeVar
 from urllib.parse import urlsplit
 
+from mkdocs.exceptions import BuildError
 from mkdocs.structure import StructureItem
+from mkdocs.structure.files import InclusionLevel
 from mkdocs.structure.pages import Page
 from mkdocs.utils import nest_paths
 
@@ -128,7 +129,7 @@ class Link(StructureItem):
 
 def get_navigation(files: Files, config: MkDocsConfig) -> Navigation:
     """Build site navigation from config and files."""
-    documentation_pages = files.documentation_pages()
+    documentation_pages = files.documentation_pages(inclusion=InclusionLevel.is_in_nav)
     nav_config = config['nav'] or nest_paths(f.src_uri for f in documentation_pages)
     items = _data_to_navigation(nav_config, files, config)
     if not isinstance(items, list):
@@ -203,20 +204,9 @@ def _data_to_navigation(data, files: Files, config: MkDocsConfig):
             )
         page = file.page
         if page is not None:
-            if isinstance(page, Page):
-                if type(page) is not Page:  # Strict subclass
-                    return page
-                warnings.warn(
-                    "A plugin has set File.page to an instance of Page and it got overwritten. "
-                    "The behavior of this will change in MkDocs 1.6.",
-                    DeprecationWarning,
-                )
-            else:
-                warnings.warn(  # type: ignore[unreachable]
-                    "A plugin has set File.page to a type other than Page. "
-                    "This will be an error in MkDocs 1.6.",
-                    DeprecationWarning,
-                )
+            if not isinstance(page, Page):
+                raise BuildError("A plugin has set File.page to a type other than Page.")
+            return page
         return Page(title, file, config)
     return Link(title, path)
 
