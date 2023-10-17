@@ -7,6 +7,7 @@ and structure of the site and pages in the site.
 from __future__ import annotations
 
 import functools
+import importlib.util
 import logging
 import os
 import posixpath
@@ -261,10 +262,19 @@ def path_to_url(path):
 def get_theme_dir(name: str) -> str:
     """Return the directory of an installed theme by name."""
 
-    theme = get_themes()[name]
-    return os.path.dirname(os.path.abspath(theme.load().__file__))
+    module_name = origin = None
+    if (entry_point := get_themes().get(name)) is not None:
+        module_name = entry_point.value
+        if (spec := importlib.util.find_spec(module_name)) is not None:
+            origin = spec.origin
+    info = f"theme {name!r} from module {module_name!r} at {origin!r}"
+    log.debug(f"Loading {info}")
+    if origin is None:
+        raise exceptions.ConfigurationError(f"Could not load {info}")
+    return os.path.dirname(os.path.abspath(origin))
 
 
+@functools.lru_cache(maxsize=None)
 def get_themes() -> dict[str, EntryPoint]:
     """Return a dict of all installed themes as {name: EntryPoint}."""
 
