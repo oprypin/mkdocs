@@ -194,6 +194,11 @@ class File:
     inclusion: InclusionLevel = InclusionLevel.UNDEFINED
     """Whether the file will be excluded from the built site."""
 
+    generated_by: str | None = None
+    """If not None, indicates that a plugin generated this file on the fly.
+
+    The value is the plugin's entrypoint name and can be used to find the plugin by key in the PluginCollection."""
+
     @property
     def src_path(self) -> str:
         """Same as `src_uri` (and synchronized with it) but will use backslashes on Windows. Discouraged."""
@@ -223,6 +228,7 @@ class File:
         *,
         dest_uri: str | None = None,
         inclusion: InclusionLevel = InclusionLevel.UNDEFINED,
+        generated_by: str | None = None,
     ) -> None:
         self.src_path = path
         self.src_dir = src_dir
@@ -231,6 +237,8 @@ class File:
         if dest_uri is not None:
             self.dest_uri = dest_uri
         self.inclusion = inclusion
+        if generated_by is not None:
+            self.generated_by = generated_by
 
     def __eq__(self, other) -> bool:
         return (
