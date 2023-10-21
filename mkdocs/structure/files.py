@@ -9,7 +9,7 @@ import shutil
 import warnings
 from functools import cached_property
 from pathlib import PurePath
-from typing import IO, TYPE_CHECKING, Callable, Iterable, Iterator, Sequence
+from typing import IO, TYPE_CHECKING, Callable, Iterable, Iterator, Sequence, overload
 from urllib.parse import quote as urlquote
 
 import pathspec
@@ -105,6 +105,54 @@ class Files:
         """Remove file from Files collection."""
         self._src_uris = None
         self._files.remove(file)
+
+    @overload
+    def new_file(
+        self,
+        src_uri: str,
+        *,
+        src_dir: str,
+        dest_uri: str | None = None,
+        inclusion: InclusionLevel = InclusionLevel.UNDEFINED,
+        generated: bool = False,
+    ) -> File:
+        """Create a file entry originating from a physical location '{src_dir}/{path}'."""
+
+    @overload
+    def new_file(
+        self,
+        src_uri: str,
+        *,
+        content: IO,
+        dest_uri: str | None = None,
+        inclusion: InclusionLevel = InclusionLevel.UNDEFINED,
+        generated: bool = True,
+    ) -> File:
+        """Create a file entry with in-memory content."""
+
+    def new_file(
+        self,
+        src_uri: str,
+        *,
+        content: IO | None = None,
+        src_dir: str | None = None,
+        dest_uri: str | None = None,
+        inclusion: InclusionLevel = InclusionLevel.UNDEFINED,
+        generated: bool | None = None,
+    ) -> File:
+        if generated is None:
+            generated = src_dir is None
+        generated_by = self.config._current_plugin or '<unknown>' if generated else None
+        return File(
+            src_uri,
+            src_dir=src_dir,
+            content=content,
+            dest_dir=self.config.site_dir,
+            use_directory_urls=self.config.use_directory_urls,
+            dest_uri=dest_uri,
+            inclusion=inclusion,
+            generated_by=generated_by,
+        )
 
     def copy_static_files(
         self,

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import functools
+import tempfile
 from typing import IO, TYPE_CHECKING, Dict
 
 from mkdocs.config import base
@@ -173,6 +175,12 @@ class MkDocsConfig(base.Config):
     _current_page: mkdocs.structure.pages.Page | None = None
     """The currently rendered page. Please do not access this and instead
     rely on the `page` argument to event handlers."""
+
+    _current_plugin: str | None = None
+
+    @functools.cached_property
+    def _temp_dir(self) -> tempfile.TemporaryDirectory:
+        return tempfile.TemporaryDirectory(prefix="mkdocs_temp_")
 
     def load_dict(self, patch: dict) -> None:
         super().load_dict(patch)
