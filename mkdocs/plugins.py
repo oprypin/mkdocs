@@ -11,6 +11,7 @@ else:
     from importlib_metadata import EntryPoint, entry_points
 
 if TYPE_CHECKING:
+    from mkdocs.structure.files import Files
     import jinja2.environment
 
 from mkdocs import utils
@@ -19,7 +20,6 @@ from mkdocs.config.base import Config, ConfigErrors, ConfigWarnings, LegacyConfi
 if TYPE_CHECKING:
     from mkdocs.config.defaults import MkDocsConfig
     from mkdocs.livereload import LiveReloadServer
-    from mkdocs.structure.files import Files
     from mkdocs.structure.nav import Navigation
     from mkdocs.structure.pages import Page
     from mkdocs.utils.templates import TemplateContext
@@ -531,7 +531,16 @@ class PluginCollection(dict, MutableMapping[str, BasePlugin]):
         return self.run_event('pre_build', config=config)
 
     def on_files(self, files: Files, *, config: MkDocsConfig) -> Files:
-        return self.run_event('files', files, config=config)
+        for method in self.events['files']:
+            if log.getEffectiveLevel() <= logging.DEBUG:
+                log.debug(f"Running `files` event from plugin '{self._find_plugin_name(method)}'")
+            result = method(files, config=config)
+            if result is not None:
+                files = result
+                # Backwards compatibility: plugins might create Files objects without populating the field.
+                if getattr(files, 'config', None) is None:
+                    files.config = config
+        return files
 
     def on_nav(self, nav: Navigation, *, config: MkDocsConfig, files: Files) -> Navigation:
         return self.run_event('nav', nav, config=config, files=files)

@@ -57,9 +57,13 @@ class InclusionLevel(enum.Enum):
 class Files:
     """A collection of [File][mkdocs.structure.files.File] objects."""
 
-    def __init__(self, files: list[File]) -> None:
+    def __init__(self, files: list[File], *, config: MkDocsConfig | None = None) -> None:
         self._files = files
         self._src_uris: dict[str, File] | None = None
+        if config is not None:
+            self.config = config
+
+    config: MkDocsConfig
 
     def __iter__(self) -> Iterator[File]:
         """Iterate over the files within."""
@@ -452,7 +456,7 @@ def get_files(config: MkDocsConfig) -> Files:
             except ValueError:
                 pass
 
-    return Files(files)
+    return Files(files, config=config)
 
 
 def _file_sort_key(f: str):
