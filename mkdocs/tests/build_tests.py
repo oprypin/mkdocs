@@ -282,14 +282,14 @@ class BuildTests(PathAssertionMixin, unittest.TestCase):
     # Test build._build_extra_template
 
     @tempdir()
-    @mock.patch('mkdocs.commands.build.open', mock.mock_open(read_data='template content'))
+    @mock.patch('mkdocs.structure.files.open', mock.mock_open(read_data='template content'))
     def test_build_extra_template(self, site_dir):
         cfg = load_config(site_dir=site_dir)
         fs = [File('foo.html', cfg.docs_dir, cfg.site_dir, cfg.use_directory_urls)]
         files = Files(fs)
         build._build_extra_template('foo.html', files, cfg, mock.Mock())
 
-    @mock.patch('mkdocs.commands.build.open', mock.mock_open(read_data='template content'))
+    @mock.patch('mkdocs.structure.files.open', mock.mock_open(read_data='template content'))
     def test_skip_missing_extra_template(self):
         cfg = load_config()
         fs = [File('foo.html', cfg.docs_dir, cfg.site_dir, cfg.use_directory_urls)]
@@ -301,7 +301,7 @@ class BuildTests(PathAssertionMixin, unittest.TestCase):
             "WARNING:mkdocs.commands.build:Template skipped: 'missing.html' not found in docs_dir.",
         )
 
-    @mock.patch('mkdocs.commands.build.open', side_effect=OSError('Error message.'))
+    @mock.patch('mkdocs.structure.files.open', side_effect=OSError('Error message.'))
     def test_skip_ioerror_extra_template(self, mock_open):
         cfg = load_config()
         fs = [File('foo.html', cfg.docs_dir, cfg.site_dir, cfg.use_directory_urls)]
@@ -313,7 +313,7 @@ class BuildTests(PathAssertionMixin, unittest.TestCase):
             "WARNING:mkdocs.commands.build:Error reading template 'foo.html': Error message.",
         )
 
-    @mock.patch('mkdocs.commands.build.open', mock.mock_open(read_data=''))
+    @mock.patch('mkdocs.structure.files.open', mock.mock_open(read_data=''))
     def test_skip_extra_template_empty_output(self):
         cfg = load_config()
         fs = [File('foo.html', cfg.docs_dir, cfg.site_dir, cfg.use_directory_urls)]
@@ -358,7 +358,7 @@ class BuildTests(PathAssertionMixin, unittest.TestCase):
         self.assertEqual(page.content, None)
 
     @tempdir(files={'index.md': 'new page content'})
-    @mock.patch('mkdocs.structure.pages.open', side_effect=OSError('Error message.'))
+    @mock.patch('mkdocs.structure.files.open', side_effect=OSError('Error message.'))
     def test_populate_page_read_error(self, docs_dir, mock_open):
         cfg = load_config(docs_dir=docs_dir)
         file = File('missing.md', cfg.docs_dir, cfg.site_dir, cfg.use_directory_urls)
@@ -691,7 +691,7 @@ class BuildTests(PathAssertionMixin, unittest.TestCase):
             # Plugin 2 reads that file and uses it to configure the nav.
             f = files.get_file_from_path('SUMMARY.md')
             assert f is not None
-            config.nav = Path(f.abs_src_path).read_text().splitlines()
+            config.nav = f.get_source().splitlines()
 
         for server in None, testing_server(site_dir):
             for exclude in 'full', 'nav', None:
