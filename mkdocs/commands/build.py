@@ -4,7 +4,7 @@ import gzip
 import logging
 import os
 import time
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Collection
 from urllib.parse import urljoin, urlsplit
 
 import jinja2
@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 
 def get_context(
     nav: Navigation,
-    files: Sequence[File] | Files,
+    files: Collection[File] | Files,
     config: MkDocsConfig,
     page: Page | None = None,
     base_url: str = '',
@@ -185,7 +185,7 @@ def _populate_page(page: Page, config: MkDocsConfig, files: Files, dirty: bool =
 def _build_page(
     page: Page,
     config: MkDocsConfig,
-    doc_files: Sequence[File],
+    doc_files: Collection[File],
     nav: Navigation,
     env: jinja2.Environment,
     dirty: bool = False,

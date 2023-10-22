@@ -8,8 +8,8 @@ import posixpath
 import shutil
 import warnings
 from functools import cached_property
-from pathlib import PurePath
-from typing import IO, TYPE_CHECKING, Callable, Iterable, Iterator, Mapping, Sequence, overload
+from pathlib import PurePath, PurePosixPath
+from typing import IO, TYPE_CHECKING, Callable, Collection, Iterable, Iterator, Mapping, overload
 from urllib.parse import quote as urlquote
 
 import pathspec
@@ -175,23 +175,23 @@ class Files:
 
     def documentation_pages(
         self, *, inclusion: Callable[[InclusionLevel], bool] = InclusionLevel.is_included
-    ) -> Sequence[File]:
+    ) -> Collection[File]:
         """Return iterable of all Markdown page file objects."""
         return [file for file in self if file.is_documentation_page() and inclusion(file.inclusion)]
 
-    def static_pages(self) -> Sequence[File]:
+    def static_pages(self) -> Collection[File]:
         """Return iterable of all static page file objects."""
         return [file for file in self if file.is_static_page()]
 
-    def media_files(self) -> Sequence[File]:
+    def media_files(self) -> Collection[File]:
         """Return iterable of all file objects which are not documentation or static pages."""
         return [file for file in self if file.is_media_file()]
 
-    def javascript_files(self) -> Sequence[File]:
+    def javascript_files(self) -> Collection[File]:
         """Return iterable of all javascript file objects."""
         return [file for file in self if file.is_javascript()]
 
-    def css_files(self) -> Sequence[File]:
+    def css_files(self) -> Collection[File]:
         """Return iterable of all CSS file objects."""
         return [file for file in self if file.is_css()]
 
@@ -514,12 +514,21 @@ def get_files(config: MkDocsConfig) -> Files:
     return Files(files, config=config)
 
 
+def file_sort_key(f: File):
+    """Replicates the sort order how `get_files` produces it."""
+    parts = PurePosixPath(f.src_uri).parts
+    return tuple(
+        chr(f.name != "index" if i == len(parts) - 1 else 2) + p for i, p in enumerate(parts)
+    )
+
+
 def _file_sort_key(f: str):
-    """Always sort `index` or `README` as first filename in list."""
+    """Always sort `index` or `README` as first filename in list. This works only on basenames of files."""
     return (os.path.splitext(f)[0] not in ('index', 'README'), f)
 
 
 def _sort_files(filenames: Iterable[str]) -> list[str]:
+    """Soft-deprecated, do not use."""
     return sorted(filenames, key=_file_sort_key)
 
 

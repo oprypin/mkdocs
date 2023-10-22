@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Sequence, TypedDict
+from typing import TYPE_CHECKING, Collection, TypedDict
 
 if TYPE_CHECKING:
     import datetime
@@ -24,10 +24,10 @@ if TYPE_CHECKING:
 
 class TemplateContext(TypedDict):
     nav: Navigation
-    pages: Sequence[File]
+    pages: Collection[File]
     base_url: str
-    extra_css: Sequence[str]  # Do not use, prefer `config.extra_css`.
-    extra_javascript: Sequence[str]  # Do not use, prefer `config.extra_javascript`.
+    extra_css: Collection[str]  # Do not use, prefer `config.extra_css`.
+    extra_javascript: Collection[str]  # Do not use, prefer `config.extra_javascript`.
     mkdocs_version: str
     build_date_utc: datetime.datetime
     config: MkDocsConfig
