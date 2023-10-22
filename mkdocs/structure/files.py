@@ -162,6 +162,26 @@ class Files:
             generated_by=generated_by,
         )
 
+    def open(
+        self, path: str, /, mode: str, buffering=-1, encoding: str | None = None, *args, **kwargs
+    ) -> IO:
+        original_file = file = self.get_file_from_path(path)
+        if file is None:
+            file = self.new_file(path, src_dir=self.config._temp_dir.name)
+            self.append(file)
+        if 'w' in mode or 'x' in mode or '+' in mode or 'a' in mode:
+            file.src_dir = self.config._temp_dir.name
+            file.__dict__.pop('abs_src_path', None)
+
+        assert file.abs_src_path is not None
+        os.makedirs(os.path.dirname(file.abs_src_path), exist_ok=True)
+        if original_file is not None and ('+' in mode or 'a' in mode):
+            original_file._copy_to(file.abs_src_path)
+
+        if encoding is None and 'b' not in mode:
+            encoding = 'utf-8'
+        return open(file.abs_src_path, mode, buffering, encoding, *args, **kwargs)
+
     def copy_static_files(
         self,
         dirty: bool = False,
