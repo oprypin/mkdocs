@@ -45,8 +45,11 @@ class Page(StructureItem):
         self.update_date = get_build_date()
 
         self._set_canonical_url(config.get('site_url', None))
-        self._set_edit_url(
-            config.get('repo_url', None), config.get('edit_uri'), config.get('edit_uri_template')
+        self.edit_url = self._get_edit_url(
+            file,
+            config.get('repo_url', None),
+            config.get('edit_uri'),
+            config.get('edit_uri_template'),
         )
 
         # Placeholders to be filled in later in the build process.
@@ -163,37 +166,42 @@ class Page(StructureItem):
             self.canonical_url = None
             self.abs_url = None
 
-    def _set_edit_url(
-        self,
+    @classmethod
+    def _get_edit_url(
+        cls,
+        file: File,
         repo_url: str | None,
         edit_uri: str | None = None,
         edit_uri_template: str | None = None,
-    ) -> None:
-        if edit_uri or edit_uri_template:
-            src_uri = self.file.src_uri
-            if edit_uri_template:
-                noext = posixpath.splitext(src_uri)[0]
-                edit_uri = edit_uri_template.format(path=src_uri, path_noext=noext)
-            else:
-                assert edit_uri is not None and edit_uri.endswith('/')
-                edit_uri += src_uri
-            if repo_url:
-                # Ensure urljoin behavior is correct
-                if not edit_uri.startswith(('?', '#')) and not repo_url.endswith('/'):
-                    repo_url += '/'
-            else:
-                try:
-                    parsed_url = urlsplit(edit_uri)
-                    if not parsed_url.scheme or not parsed_url.netloc:
-                        log.warning(
-                            f"edit_uri: {edit_uri!r} is not a valid URL, it should include the http:// (scheme)"
-                        )
-                except ValueError as e:
-                    log.warning(f"edit_uri: {edit_uri!r} is not a valid URL: {e}")
+    ) -> str | None:
+        if not edit_uri_template and not edit_uri:
+            return None
+        src_uri = file.edit_uri
+        if src_uri is None:
+            return None
 
-            self.edit_url = urljoin(repo_url or '', edit_uri)
+        if edit_uri_template:
+            noext = posixpath.splitext(src_uri)[0]
+            file_edit_uri = edit_uri_template.format(path=src_uri, path_noext=noext)
         else:
-            self.edit_url = None
+            assert edit_uri is not None and edit_uri.endswith('/')
+            file_edit_uri = edit_uri + src_uri
+
+        if repo_url:
+            # Ensure urljoin behavior is correct
+            if not file_edit_uri.startswith(('?', '#')) and not repo_url.endswith('/'):
+                repo_url += '/'
+        else:
+            try:
+                parsed_url = urlsplit(file_edit_uri)
+                if not parsed_url.scheme or not parsed_url.netloc:
+                    log.warning(
+                        f"edit_uri: {file_edit_uri!r} is not a valid URL, it should include the http:// (scheme)"
+                    )
+            except ValueError as e:
+                log.warning(f"edit_uri: {file_edit_uri!r} is not a valid URL: {e}")
+
+        return urljoin(repo_url or '', file_edit_uri)
 
     def read_source(self, config: MkDocsConfig) -> None:
         source = config.plugins.on_page_read_source(page=self, config=config)
