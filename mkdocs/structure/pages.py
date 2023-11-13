@@ -9,8 +9,10 @@ from urllib.parse import unquote as urlunquote
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
 import markdown
+import markdown.htmlparser
 import markdown.postprocessors
 import markdown.treeprocessors
+from markdown.extensions import md_in_html
 from markdown.util import AMP_SUBSTITUTE
 
 from mkdocs import utils
@@ -262,6 +264,14 @@ class Page(StructureItem):
             extension_configs=config['mdx_configs'] or {},
         )
 
+        if type(md.preprocessors['html_block']) is markdown.preprocessors.HtmlBlockPreprocessor:
+            raw_html_processor = HtmlBlockPreprocessorModified(md)
+        elif type(md.preprocessors['html_block']) is md_in_html.HtmlBlockPreprocessor:
+            raw_html_processor = HtmlBlockPreprocessorExtraModified(md)
+        else:
+            raise RuntimeError("The user added an extension that replaced 'html_block'.")
+        md.preprocessors.register(raw_html_processor, 'html_block', 20)
+
         relative_path_ext = _RelativePathTreeprocessor(self.file, files, config)
         relative_path_ext._register(md)
 
@@ -271,7 +281,9 @@ class Page(StructureItem):
         self.content = md.convert(self.markdown)
         self.toc = get_toc(getattr(md, 'toc_tokens', []))
         self._title_from_render = extract_title_ext.title
-        self.present_anchor_ids = relative_path_ext.present_anchor_ids
+        self.present_anchor_ids = (
+            relative_path_ext.present_anchor_ids | raw_html_processor.present_anchor_ids
+        )
         if log.getEffectiveLevel() > logging.DEBUG:
             self.links_to_anchors = relative_path_ext.links_to_anchors
 
@@ -481,6 +493,42 @@ class _RelativePathTreeprocessor(markdown.treeprocessors.Treeprocessor):
 
     def _register(self, md: markdown.Markdown) -> None:
         md.treeprocessors.register(self, "relpath", 0)
+
+
+class HTMLExtractorModified(markdown.htmlparser.HTMLExtractor):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.present_anchor_ids: set[str] = set()
+
+    def handle_starttag(self, tag, attrs) -> None:
+        for k, v in attrs:
+            if k == 'id':
+                self.present_anchor_ids.add(v)
+        return super().handle_starttag(tag, attrs)
+
+
+class HTMLExtractorExtraModified(HTMLExtractorModified, md_in_html.HTMLExtractorExtra):
+    pass
+
+
+class HtmlBlockPreprocessorModified(markdown.preprocessors.Preprocessor):
+    HTMLExtractorClass = HTMLExtractorModified
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.present_anchor_ids: set[str] = set()
+
+    def run(self, lines: list[str]) -> list[str]:
+        source = '\n'.join(lines)
+        parser = self.HTMLExtractorClass(self.md)
+        parser.feed(source)
+        parser.close()
+        self.present_anchor_ids = parser.present_anchor_ids
+        return ''.join(parser.cleandoc).split('\n')
+
+
+class HtmlBlockPreprocessorExtraModified(HtmlBlockPreprocessorModified):
+    HTMLExtractorClass = HTMLExtractorExtraModified
 
 
 class _ExtractTitleTreeprocessor(markdown.treeprocessors.Treeprocessor):
