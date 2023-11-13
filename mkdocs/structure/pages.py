@@ -262,6 +262,18 @@ class Page(StructureItem):
             extension_configs=config['mdx_configs'] or {},
         )
 
+        present_anchor_ids = set()
+        base_class = md.preprocessors['html_block'].HTMLExtractorClass
+
+        class sub_class(base_class):
+            def handle_starttag(self, tag, attrs) -> None:
+                for k, v in attrs:
+                    if k == 'id':
+                        present_anchor_ids.add(v)
+                return super().handle_starttag(tag, attrs)
+
+        md.preprocessors['html_block'].HTMLExtractorClass = sub_class
+
         relative_path_ext = _RelativePathTreeprocessor(self.file, files, config)
         relative_path_ext._register(md)
 
@@ -271,7 +283,7 @@ class Page(StructureItem):
         self.content = md.convert(self.markdown)
         self.toc = get_toc(getattr(md, 'toc_tokens', []))
         self._title_from_render = extract_title_ext.title
-        self.present_anchor_ids = relative_path_ext.present_anchor_ids
+        self.present_anchor_ids = relative_path_ext.present_anchor_ids | present_anchor_ids
         if log.getEffectiveLevel() > logging.DEBUG:
             self.links_to_anchors = relative_path_ext.links_to_anchors
 
