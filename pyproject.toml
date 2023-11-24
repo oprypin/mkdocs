@@ -102,6 +102,11 @@ dependencies = [
     "setuptools; python_version >= '3.12'" # Workaround: babel doesn't declare its dependency
 ]
 
+[tool.hatch.env]
+requires = [
+    "hatch-pip-compile",
+]
+
 [tool.hatch.envs.default.scripts]
 all = [
     "hatch run style:fix",
@@ -198,6 +203,8 @@ css = "npm exec --yes -- csslint --quiet mkdocs/"
 check = ["markdown", "js", "css", "spelling"]
 
 [tool.hatch.envs.docs]
+type = "pip-compile"
+pip-compile-hashes = false
 dependencies = [
     "Markdown >=3.3.3",
     "mdx_gh_links >=0.2",
