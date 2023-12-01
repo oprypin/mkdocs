@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ config.theme.locale|default('en') }}" data-bs-theme="light">
+<html lang="{{ config.theme.locale|default('en') }}" data-bs-theme="{{ config.theme.color_mode }}">
     <head>
       {%- block site_meta %}
         <meta charset="utf-8">
@@ -21,7 +21,8 @@
         <link href="{{ 'css/font-awesome.min.css'|url }}" rel="stylesheet">
         <link href="{{ 'css/base.css'|url }}" rel="stylesheet">
         {%- if config.theme.highlightjs %}
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/{{ config.theme.hljs_style }}.min.css">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/{{ config.theme.hljs_style }}.min.css" {% if config.theme.color_mode != "light" %}disabled{% endif %}>
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/{{ config.theme.hljs_style_dark }}.min.css" {% if config.theme.color_mode != "dark" %}disabled{% endif %}>
         {%- endif %}
         {%- for path in config.extra_css %}
         <link href="{{ path|url }}" rel="stylesheet">
@@ -65,7 +66,7 @@
     </head>
 
     <body{% if page and page.is_homepage %} class="homepage"{% endif %}>
-        <div class="navbar fixed-top navbar-expand-lg bg-{{ config.theme.nav_style }}" data-bs-theme="{% if config.theme.nav_style == "light" %}light{% else %}dark{% endif %}">
+        <div class="navbar fixed-top navbar-expand-lg bg-{{ config.theme.nav_style }}" data-bs-theme="{% if config.theme.nav_style == 'light' %}light{% else %}dark{% endif %}">
             <div class="container-fluid">
 
                 {%- block site_name %}
@@ -87,7 +88,7 @@
                         <ul class="nav navbar-nav">
                         {%- for nav_item in nav %}
                         {%- if nav_item.children %}
-                            <li class="nav-item dropdown">
+                            <li class="nav-item dropdown" data-bs-theme="{% if config.theme.nav_style == 'dark' %}dark{% else %}light{% endif %}">
                                 <a href="#" class="nav-link dropdown-toggle{% if nav_item.active %} active" aria-current="page{% endif %}" role="button" data-bs-toggle="dropdown"  aria-expanded="false">{{ nav_item.title }}</a>
                                 <ul class="dropdown-menu">
                                 {%- for nav_item in nav_item.children %}
@@ -105,7 +106,7 @@
                     {%- endif %}
                   {%- endblock %}
 
-                    <ul class="nav navbar-nav ml-auto">
+                    <ul class="nav navbar-nav ms-md-auto">
                       {%- block search_button %}
                         {%- if 'search' in config.plugins %}
                         <li class="nav-item">

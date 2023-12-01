@@ -18,7 +18,32 @@ function applyTopPadding() {
     $('.bs-sidebar.affix').css('top', offset.top + 'px');
 }
 
+function setColorMode(dark) {
+    // Switch between light/dark theme. `dark` is a boolean value.
+    var hljs_light = document.getElementById('hljs-light'),
+        hljs_dark = document.getElementById('hljs-dark');
+    if (dark) {
+        document.documentElement.setAttribute('data-bs-theme', 'dark');
+        hljs_light.disabled = true;
+        hljs_dark.disabled = false;
+    } else {
+        document.documentElement.setAttribute('data-bs-theme', 'light');
+        hljs_dark.disabled = true;
+        hljs_light.disabled = false;
+    }
+}
+
 $(document).ready(function() {
+
+    if (document.documentElement.getAttribute('data-bs-theme') == 'auto') {
+        var mql = window.matchMedia('(prefers-color-scheme: dark)');
+        // Set to mode defined by system
+        setColorMode(mql.matches);
+        // Listen for changes to system and update accordingly.
+        mql.addEventListener('change', function (e) {
+            setColorMode(e.matches);
+        });
+    }
 
     applyTopPadding();
 

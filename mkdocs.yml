@@ -8,6 +8,7 @@ edit_uri: blob/master/docs/
 
 theme:
   name: mkdocs
+  color_mode: auto
   locale: en
   analytics: {gtag: 'G-274394082'}
   highlightjs: true
