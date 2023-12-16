@@ -880,17 +880,17 @@ plugins: []
 #### `enabled` option
 
 > NEW: **New in MkDocs 1.6.**
->
-> Each plugin has its own options keys. However MkDocs also ensures that each plugin has the `enabled` boolean option. This can be used to conditionally enable a particular plugin, as in the following example:
->
-> ```yaml
-> plugins:
->   - search
->   - code-validator:
->       enabled: !ENV [LINT, false]
-> ```
->
-> See: [Environment variables](#environment-variables)
+
+Each plugin has its own options keys. However MkDocs also ensures that each plugin has the `enabled` boolean option. This can be used to conditionally enable a particular plugin, as in the following example:
+
+```yaml
+plugins:
+  - search
+  - code-validator:
+      enabled: !ENV [LINT, false]
+```
+
+See: [Environment variables](#environment-variables)
 
 #### Alternate syntax
 
