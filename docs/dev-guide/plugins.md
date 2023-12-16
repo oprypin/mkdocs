@@ -34,7 +34,7 @@ class MyPlugin(mkdocs.plugins.BasePlugin):
     )
 ```
 
-> NEW: **New in version 1.4.**
+> NEW: **New in MkDocs 1.4.**
 >
 > #### Subclassing `Config` to specify the config schema
 >
@@ -133,7 +133,7 @@ def on_pre_build(self, config, **kwargs):
         # implement "baz" functionality here...
 ```
 
-> NEW: **New in version 1.4.**
+> NEW: **New in MkDocs 1.4.**
 >
 > #### Safe attribute-based access
 >
@@ -180,7 +180,7 @@ class MyPlugin(BasePlugin):
         return config
 ```
 
-> NEW: **New in version 1.4.**
+> NEW: **New in MkDocs 1.4.**
 >
 > To get type safety benefits, if you're targeting only MkDocs 1.4+, access config options as attributes instead:
 >

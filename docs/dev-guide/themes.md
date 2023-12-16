@@ -682,7 +682,7 @@ Safely convert a Python object to a value in a JavaScript script.
 
 ### script_tag
 
-NEW: **New in version 1.5.**
+NEW: **New in MkDocs 1.5.**
 
 Convert an item from `extra_javascript` to a `<script>` tag that takes into account all [customizations of this config](../user-guide/configuration.md#extra_javascript) and has the equivalent of [`|url`](#url) behavior built-in.
 

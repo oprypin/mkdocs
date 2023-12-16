@@ -293,7 +293,7 @@ sub-directories. Index files will always be listed first within a sub-section.
 
 ### exclude_docs
 
-NEW: **New in version 1.5.**
+NEW: **New in MkDocs 1.5.**
 
 > DANGER: **Changed in version 1.6:**
 >
@@ -332,7 +332,7 @@ exclude_docs: |
 
 ### draft_docs
 
-NEW: **New in version 1.6.**
+NEW: **New in MkDocs 1.6.**
 
 This config defines patterns of files (under [`docs_dir`](#docs_dir)) to be treated as a draft.  Draft files are available during `mkdocs serve` and include a "DRAFT" mark but will not be included in the build. To prevent this effect and make "serve" behave the same as "build", you can run `mkdocs serve --clean`.
 
@@ -349,9 +349,9 @@ This follows the [.gitignore pattern format](https://git-scm.com/docs/gitignore#
 
 ### not_in_nav
 
-NEW: **New in version 1.5.**
+NEW: **New in MkDocs 1.5.**
 
-> NEW: **New in version 1.6:**
+> NEW: **New in MkDocs 1.6:**
 >
 > If the [`nav`](#nav) config is not specified at all, pages specified in this config will now be excluded from the inferred navigation.
 
@@ -376,7 +376,7 @@ NOTE: Adding a given file to [`exclude_docs`](#exclude_docs) takes precedence ov
 
 ### validation
 
-NEW: **New in version 1.5.**
+NEW: **New in MkDocs 1.5.**
 
 Configure the strictness of MkDocs' diagnostic messages when validating links to documents.
 
@@ -448,7 +448,7 @@ Full list of values and examples of log messages that they can hide or make more
 
 #### Validation of absolute links
 
-NEW: **New in version 1.6.**
+NEW: **New in MkDocs 1.6.**
 
 > Historically, within Markdown, MkDocs only recognized **relative** links that lead to another physical `*.md` document (or media file). This is a good convention to follow because then the source pages are also freely browsable without MkDocs, for example on GitHub. Whereas absolute links were left unmodified (making them often not work as expected) or, more recently, warned against. If you dislike having to always use relative links, now you can opt into absolute links and have them work correctly.
 
@@ -793,7 +793,7 @@ This alternative syntax is required if you intend to override some options via
 
 ### hooks
 
-NEW: **New in version 1.4.**
+NEW: **New in MkDocs 1.4.**
 
 A list of paths to Python scripts (relative to `mkdocs.yml`) that are loaded and used as [plugin](#plugins) instances.
 
@@ -1072,7 +1072,7 @@ project.
 
 ### Paths relative to the current file or site
 
-NEW: **New in version 1.5.**
+NEW: **New in MkDocs 1.5.**
 
 Some Markdown extensions can benefit from knowing the path of the Markdown file that's currently being processed, or just the root path of the current site. For that, the special tag `!relative` can be used in most contexts within the config file, though the only known usecases are within [`markdown_extensions`](#markdown_extensions).
 
