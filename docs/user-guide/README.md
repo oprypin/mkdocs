@@ -13,7 +13,6 @@ bar at the top of the page to move through the documentation in order.
 - [Writing Your Docs](writing-your-docs.md)
 - [Choosing Your Theme](choosing-your-theme.md)
 - [Customizing Your Theme](customizing-your-theme.md)
-- [Localizing Your Theme](localizing-your-theme.md)
 - [Configuration](configuration.md)
 - [Command Line Interface](cli.md)
 - [Deploying Your Docs](deploying-your-docs.md)

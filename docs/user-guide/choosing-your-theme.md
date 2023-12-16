@@ -101,16 +101,18 @@ supports the following options:
       nav_style: dark
     ```
 
-*   __`locale`__{ #mkdocs-locale }: The locale (language/location) used to
+*   __`locale`__: The locale (language/location) used to
     build the theme. If your locale is not yet supported, it will fall back
     to the default.
 
-    The following locales are supported by this theme:
+    <a id="mkdocs-locale"></a>
+
+    The following locales are supported by the 'mkdocs' theme:
 
     * `en`: English (default)
     * (see the list of existing directories `mkdocs/themes/mkdocs/locales/*/`)
 
-    See the guide on [localizing your theme] for more information.
+    See the guide on [displaying themes in other languages] for more information.
 
 ## readthedocs
 
@@ -178,16 +180,18 @@ theme supports the following options:
 *   __`sticky_navigation`__: If True, causes the sidebar to scroll with the main
     page content as you scroll the page. Default: `True`.
 
-*   __`locale`__{ #readthedocs-locale }: The locale (language/location) used to
+*   __`locale`__: The locale (language/location) used to
     build the theme. If your locale is not yet supported, it will fall back
     to the default.
 
-    The following locales are supported by this theme:
+    <a id="readthedocs-locale"></a>
+
+    The following locales are supported by the 'readthedocs' theme:
 
     * `en`: English (default)
     * (see the list of existing directories `mkdocs/themes/readthedocs/locales/*/`)
 
-    See the guide on [localizing your theme] for more information.
+    See the guide on [displaying themes in other languages] for more information.
 
 *   __`logo`__: To set a logo on your project instead of the plain text
     `site_name`, set this variable to be the location of your image. Default: `null`.
@@ -197,6 +201,61 @@ theme supports the following options:
 A list of third party themes can be found at the [community wiki] page and [the ranked catalog][catalog]. If you have created your own, please add them there.
 
 WARNING: Installing an MkDocs theme means installing a Python package and executing any code that the author has put in there. So, exercise the usual caution; there's no attempt at sandboxing.
+
+## Displaying themes in other languages
+
+NOTE:
+Theme localization only translates the text elements of the theme itself
+(such as "next" and "previous" links), not the actual content of your
+documentation. If you wish to create multilingual documentation, you need
+to combine theme localization as described here with a third-party
+internationalization/localization plugin.
+
+### Installation
+
+For theme localization to work, you must use a theme which supports it and
+enable `i18n` (internationalization) support by installing `mkdocs[i18n]`:
+
+```bash
+pip install 'mkdocs[i18n]'
+```
+
+### Supported locales
+
+In most cases a locale is designated by the [ISO-639-1] (2-letter) abbreviation
+for your language. However, a locale may also include a territory (or region or
+county) code as well. The language and territory must be separated by an
+underscore. For example, some possible locales for English might include `en`,
+`en_AU`, `en_GB`, and `en_US`.
+
+For a list of locales supported by the theme you are using, see that theme's
+documentation.
+
+* [mkdocs](#mkdocs-locale)
+* [readthedocs](#readthedocs-locale)
+
+WARNING:
+If you configure a language locale which is not yet supported by the theme
+that you are using, MkDocs will fall back to the theme's default locale.
+
+### Usage
+
+To specify the locale that MkDocs should use, set the [locale]
+parameter of the [theme] configuration option to the appropriate code.
+
+For example, to build the `mkdocs` theme in French you would use the following
+in your `mkdocs.yml` configuration file:
+
+```yaml
+theme:
+  name: mkdocs
+  locale: fr
+```
+
+### Contributing theme translations
+
+If a theme has not yet been translated into your language, feel free to
+contribute a translation using the [Translation Guide].
 
 [third party themes]: #third-party-themes
 [theme]: configuration.md#theme
@@ -208,4 +267,7 @@ WARNING: Installing an MkDocs theme means installing a Python package and execut
 [Read the Docs]: https://readthedocs.org/
 [community wiki]: https://github.com/mkdocs/mkdocs/wiki/MkDocs-Themes
 [catalog]: https://github.com/mkdocs/catalog#-theming
-[localizing your theme]: localizing-your-theme.md
+[displaying themes in other languages]: #displaying-themes-in-other-languages
+[Translation Guide]: ../dev-guide/translations.md
+[locale]: configuration.md#locale
+[ISO-639-1]: https://en.wikipedia.org/wiki/ISO_639-1

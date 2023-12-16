@@ -729,7 +729,7 @@ The `mkdocs` and `readthedocs` themes now support language localization using
 the `theme.locale` parameter, which defaults to `en` (English). The only other
 supported languages in this release are `fr` (French) and `es` (Spanish). For
 details on using the provided translations, see the [user
-guide](../user-guide/localizing-your-theme.md). Note that translation will not
+guide](../user-guide/choosing-your-theme.md#displaying-themes-in-other-languages). Note that translation will not
 happen by default. Users must first install the necessary dependencies with
 the following command:
 

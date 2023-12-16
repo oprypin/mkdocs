@@ -501,7 +501,7 @@ If a set of key/value pairs, the following nested keys can be defined:
 >
 > #### locale
 >
-> A code representing the language of your site. See [Localizing your theme]
+> A code representing the language of your site. See [Displaying themes in other languages]
 > for details.
 >
 > #### custom_dir
@@ -1241,7 +1241,7 @@ echo '{INHERIT: mkdocs.yml, site_name: "Renamed site"}' | mkdocs build -f -
 [Meta-Data]: writing-your-docs.md#meta-data
 [theme_dir]: customizing-your-theme.md#using-the-theme-custom_dir
 [choosing your theme]: choosing-your-theme.md
-[Localizing your theme]: localizing-your-theme.md
+[Displaying themes in other languages]: choosing-your-theme.md#displaying-themes-in-other-languages
 [extra_css]: #extra_css
 [Plugins]: ../dev-guide/plugins.md
 [lunr.js]: https://lunrjs.com/

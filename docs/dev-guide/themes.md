@@ -1029,7 +1029,7 @@ However, if a theme developer chooses to use the same mechanisms used by the
 built-in themes, the sections below outline how to enable and make use of the
 same commands utilized by MkDocs.
 
-[localization/translation]: ../user-guide/localizing-your-theme.md
+[localization/translation]: ../user-guide/choosing-your-theme.md#displaying-themes-in-other-languages
 
 ### Using the Localization/Translation commands
 
