@@ -3,7 +3,24 @@ from __future__ import annotations
 import logging
 import os
 
-config_text = 'site_name: My Docs\n'
+config_text = '''\
+site_name: My Docs
+
+theme:
+  name: mkdocs
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+'''
 index_text = """# Welcome to MkDocs
 
 For full documentation visit [mkdocs.org](https://www.mkdocs.org).
