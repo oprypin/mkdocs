@@ -1,60 +1,6 @@
-# MkDocs Plugins
+# Developing Plugins
 
-*A guide to installing, using and creating MkDocs Plugins.*
-
----
-
-## Installing Plugins
-
-Before a plugin can be used, it must be installed on the system. If you are
-using a plugin which comes with MkDocs, then it was installed when you installed
-MkDocs. However, to install third party plugins, you need to determine the
-appropriate package name and install it using `pip`:
-
-```bash
-pip install mkdocs-foo-plugin
-```
-
-WARNING: Installing an MkDocs plugin means installing a Python package and executing any code that the author has put in there. So, exercise the usual caution; there's no attempt at sandboxing.
-
-Once a plugin has been successfully installed, it is ready to use. It just needs
-to be [enabled](#using-plugins) in the configuration file. The [Catalog]
-repository has a large ranked list of plugins that you can install and use.
-
-## Using Plugins
-
-The [`plugins`][config] configuration option should contain a list of plugins to
-use when building the site. Each "plugin" must be a string name assigned to the
-plugin (see the documentation for a given plugin to determine its "name"). A
-plugin listed here must already be [installed](#installing-plugins).
-
-```yaml
-plugins:
-  - search
-```
-
-Some plugins may provide configuration options of their own. If you would like
-to set any configuration options, then you can nest a key/value mapping
-(`option_name: option value`) of any options that a given plugin supports. Note
-that a colon (`:`) must follow the plugin name and then on a new line the option
-name and value must be indented and separated by a colon. If you would like to
-define multiple options for a single plugin, each option must be defined on a
-separate line.
-
-```yaml
-plugins:
-  - search:
-      lang: en
-      foo: bar
-```
-
-For information regarding the configuration options available for a given plugin,
-see that plugin's documentation.
-
-For a list of default plugins and how to override them, see the
-[configuration][config] documentation.
-
-## Developing Plugins
+*A guide to creating MkDocs Plugins.*
 
 Like MkDocs, plugins must be written in Python. It is generally expected that
 each plugin would be distributed as a separate Python module, although it is
@@ -62,7 +8,7 @@ possible to define multiple plugins in the same module. At a minimum, a MkDocs
 Plugin must consist of a [BasePlugin] subclass and an [entry point] which
 points to it.
 
-### BasePlugin
+## BasePlugin
 
 A subclass of `mkdocs.plugins.BasePlugin` should define the behavior of the plugin.
 The class generally consists of actions to perform on specific events in the build
@@ -70,7 +16,7 @@ process as well as a configuration scheme for the plugin.
 
 All `BasePlugin` subclasses contain the following attributes:
 
-#### config_scheme
+### config_scheme
 
 A tuple of configuration validation instances. Each item must consist of a
 two item tuple in which the first item is the string name of the
@@ -90,7 +36,7 @@ class MyPlugin(mkdocs.plugins.BasePlugin):
 
 > NEW: **New in version 1.4.**
 >
-> ##### Subclassing `Config` to specify the config schema
+> #### Subclassing `Config` to specify the config schema
 >
 > To get type safety benefits, if you're targeting only MkDocs 1.4+, define the config schema as a class instead:
 >
@@ -104,7 +50,7 @@ class MyPlugin(mkdocs.plugins.BasePlugin):
 >     ...
 > ```
 
-##### Examples of config definitions
+#### Examples of config definitions
 
 >! EXAMPLE:
 >
@@ -175,7 +121,7 @@ in the plugin.
 Any settings provided by the user which fail validation or are not defined
 in the `config_scheme` will raise a `mkdocs.config.base.ValidationError`.
 
-#### config
+### config
 
 A dictionary of configuration options for the plugin, which is populated by
 the `load_config` method after configuration validation has completed. Use
@@ -189,7 +135,7 @@ def on_pre_build(self, config, **kwargs):
 
 > NEW: **New in version 1.4.**
 >
-> ##### Safe attribute-based access
+> #### Safe attribute-based access
 >
 > To get type safety benefits, if you're targeting only MkDocs 1.4+, access options as attributes instead:
 >
@@ -201,13 +147,13 @@ def on_pre_build(self, config, **kwargs):
 
 All `BasePlugin` subclasses contain the following method(s):
 
-#### load_config(options)
+### load_config(options)
 
 Loads configuration from a dictionary of options. Returns a tuple of
 `(errors, warnings)`. This method is called by MkDocs during configuration
 validation and should not need to be called by the plugin.
 
-#### on_&lt;event_name&gt;()
+### on_&lt;event_name&gt;()
 
 Optional methods which define the behavior for specific [events]. The plugin
 should define its behavior within these methods. Replace `<event_name>` with
@@ -244,7 +190,7 @@ class MyPlugin(BasePlugin):
 >     return config
 > ```
 
-### Events
+## Events
 
 There are three kinds of events: [Global Events], [Page Events] and
 [Template Events].
@@ -267,187 +213,187 @@ There are three kinds of events: [Global Events], [Page Events] and
 </details>
 <br>
 
-#### One-time Events
+### One-time Events
 
 One-time events run once per `mkdocs` invocation. The only case where these tangibly differ from [global events](#global-events) is for `mkdocs serve`: global events, unlike these, will run multiple times -- once per *build*.
 
-##### on_startup
+#### on_startup
 
 ::: mkdocs.plugins.BasePlugin.on_startup
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-##### on_shutdown
+#### on_shutdown
 
 ::: mkdocs.plugins.BasePlugin.on_shutdown
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-##### on_serve
+#### on_serve
 
 ::: mkdocs.plugins.BasePlugin.on_serve
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-#### Global Events
+### Global Events
 
 Global events are called once per build at either the beginning or end of the
 build process. Any changes made in these events will have a global effect on the
 entire site.
 
-##### on_config
+#### on_config
 
 ::: mkdocs.plugins.BasePlugin.on_config
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-##### on_pre_build
+#### on_pre_build
 
 ::: mkdocs.plugins.BasePlugin.on_pre_build
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-##### on_files
+#### on_files
 
 ::: mkdocs.plugins.BasePlugin.on_files
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-##### on_nav
+#### on_nav
 
 ::: mkdocs.plugins.BasePlugin.on_nav
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-##### on_env
+#### on_env
 
 ::: mkdocs.plugins.BasePlugin.on_env
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-##### on_post_build
+#### on_post_build
 
 ::: mkdocs.plugins.BasePlugin.on_post_build
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-##### on_build_error
+#### on_build_error
 
 ::: mkdocs.plugins.BasePlugin.on_build_error
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-#### Template Events
+### Template Events
 
 Template events are called once for each non-page template. Each template event
 will be called for each template defined in the [extra_templates] config setting
 as well as any [static_templates] defined in the theme. All template events are
 called after the [env] event and before any [page events].
 
-##### on_pre_template
+#### on_pre_template
 
 ::: mkdocs.plugins.BasePlugin.on_pre_template
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-##### on_template_context
+#### on_template_context
 
 ::: mkdocs.plugins.BasePlugin.on_template_context
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-##### on_post_template
+#### on_post_template
 
 ::: mkdocs.plugins.BasePlugin.on_post_template
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-#### Page Events
+### Page Events
 
 Page events are called once for each Markdown page included in the site. All
 page events are called after the [post_template] event and before the
 [post_build] event.
 
-##### on_pre_page
+#### on_pre_page
 
 ::: mkdocs.plugins.BasePlugin.on_pre_page
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-##### on_page_read_source
+#### on_page_read_source
 
 ::: mkdocs.plugins.BasePlugin.on_page_read_source
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-##### on_page_markdown
+#### on_page_markdown
 
 ::: mkdocs.plugins.BasePlugin.on_page_markdown
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-##### on_page_content
+#### on_page_content
 
 ::: mkdocs.plugins.BasePlugin.on_page_content
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-##### on_page_context
+#### on_page_context
 
 ::: mkdocs.plugins.BasePlugin.on_page_context
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-##### on_post_page
+#### on_post_page
 
 ::: mkdocs.plugins.BasePlugin.on_post_page
     options:
         show_root_heading: false
         show_root_toc_entry: false
 
-### Event Priorities
+## Event Priorities
 
 For each event type, corresponding methods of plugins are called in the order that the plugins appear in the `plugins` [config][].
 
 Since MkDocs 1.4, plugins can choose to set a priority value for their events. Events with higher priority are called first. Events without a chosen priority get a default of 0. Events that have the same priority are ordered as they appear in the config.
 
-#### ::: mkdocs.plugins.event_priority
+### ::: mkdocs.plugins.event_priority
 
 There may also arise a need to register a handler for the same event at multiple different priorities.
 
 `CombinedEvent` makes this possible since MkDocs 1.6.
 
-#### ::: mkdocs.plugins.CombinedEvent
+### ::: mkdocs.plugins.CombinedEvent
 
-### Handling Errors
+## Handling Errors
 
 MkDocs defines four error types:
 
-#### ::: mkdocs.exceptions.MkDocsException
+### ::: mkdocs.exceptions.MkDocsException
 
-#### ::: mkdocs.exceptions.ConfigurationError
+### ::: mkdocs.exceptions.ConfigurationError
 
-#### ::: mkdocs.exceptions.BuildError
+### ::: mkdocs.exceptions.BuildError
 
-#### ::: mkdocs.exceptions.PluginError
+### ::: mkdocs.exceptions.PluginError
 
 Unexpected and uncaught exceptions will interrupt the build process and produce
 typical Python tracebacks, which are useful for debugging your code. However,
@@ -482,7 +428,7 @@ class MyPlugin(BasePlugin):
         ...
 ```
 
-### Logging in plugins
+## Logging in plugins
 
 To ensure that your plugins' log messages adhere with MkDocs' formatting and `--verbose`/`--debug` flags, please write the logs to a logger under the `mkdocs.plugins.` namespace.
 
@@ -508,9 +454,9 @@ To ensure that your plugins' log messages adhere with MkDocs' formatting and `--
 >
 > MkDocs now provides a `get_plugin_logger()` convenience function that returns a logger like the above that is also prefixed with the plugin's name.
 >
-> #### ::: mkdocs.plugins.get_plugin_logger
+> ### ::: mkdocs.plugins.get_plugin_logger
 
-### Entry Point
+## Entry Point
 
 Plugins need to be packaged as Python libraries (distributed on PyPI separate
 from MkDocs) and each must register as a Plugin via a setuptools `entry_points`.
@@ -543,7 +489,7 @@ entry_points={
 Note that registering a plugin does not activate it. The user still needs to
 tell MkDocs to use it via the config.
 
-### Publishing a Plugin
+## Publishing a Plugin
 
 You should publish a package on [PyPI], then add it to the [Catalog] for discoverability. Plugins are strongly recommended to have a unique plugin name (entry point name) according to the catalog.
 

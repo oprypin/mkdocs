@@ -12,8 +12,9 @@ bar at the top of the page to move through the documentation in order.
 - [Installation](installation.md)
 - [Writing Your Docs](writing-your-docs.md)
 - [Choosing Your Theme](choosing-your-theme.md)
-- [Customizing Your Theme](customizing-your-theme.md)
 - [Configuration](configuration.md)
+- [Adding Plugins](adding-plugins.md)
+- [Customizing Your Theme](customizing-your-theme.md)
 - [Command Line Interface](cli.md)
 - [Deploying Your Docs](deploying-your-docs.md)
 
