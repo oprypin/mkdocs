@@ -4,8 +4,10 @@ div.col-md-9 h1:first-of-type {
     font-weight: 300;
 }
 
-div.col-md-9>p:first-of-type {
+div.col-md-9>p:first-of-type>em {
+    display: block;
     text-align: center;
+    font-style: normal;
 }
 
 div.col-md-9 p.admonition-title:first-of-type {

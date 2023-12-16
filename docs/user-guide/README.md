@@ -1,6 +1,6 @@
 # User Guide
 
-Building Documentation with MkDocs
+*Building documentation with MkDocs.*
 
 ---
 

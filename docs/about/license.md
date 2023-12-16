@@ -1,9 +1,5 @@
 # License
 
-The legal stuff.
-
----
-
 ## Included projects
 
 Themes used under license from the ReadTheDocs projects.

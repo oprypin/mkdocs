@@ -1,6 +1,6 @@
 # MkDocs Plugins
 
-A Guide to installing, using and creating MkDocs Plugins
+*A guide to installing, using and creating MkDocs Plugins.*
 
 ---
 

@@ -1,6 +1,6 @@
 # Localizing Your Theme
 
-Display your theme in your preferred language.
+*Display your theme in your preferred language.*
 
 ---
 

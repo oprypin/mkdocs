@@ -1,6 +1,6 @@
 # Developer Guide
 
-Extending MkDocs
+*Extending MkDocs.*
 
 ---
 

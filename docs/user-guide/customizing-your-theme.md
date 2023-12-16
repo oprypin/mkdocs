@@ -1,6 +1,6 @@
 # Customizing Your Theme
 
-Altering a theme to suit your needs.
+*Altering a theme to suit your needs.*
 
 ---
 

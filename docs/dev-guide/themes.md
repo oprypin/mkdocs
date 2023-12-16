@@ -1,6 +1,6 @@
 # Developing Themes
 
-A guide to creating and distributing custom themes.
+*A guide to creating and distributing custom themes.*
 
 ---
 

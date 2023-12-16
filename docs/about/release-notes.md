@@ -1,7 +1,5 @@
 # Release Notes
 
----
-
 ## Upgrading
 
 To upgrade MkDocs to the latest version, use pip:

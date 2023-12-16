@@ -1,6 +1,6 @@
 # Configuration
 
-Guide to all available configuration settings.
+*Guide to all available configuration settings.*
 
 ---
 

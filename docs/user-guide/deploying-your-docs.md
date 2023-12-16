@@ -1,6 +1,6 @@
 # Deploying your docs
 
-A basic guide to deploying your docs to various hosting providers
+*A basic guide to deploying your docs to various hosting providers.*
 
 ---
 

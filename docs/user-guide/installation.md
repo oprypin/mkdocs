@@ -1,6 +1,6 @@
-# MkDocs Installation
+# Installation
 
-A detailed guide.
+*Getting started with MkDocs.*
 
 ---
 

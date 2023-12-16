@@ -1,7 +1,5 @@
 # Contributing to MkDocs
 
-An introduction to contributing to the MkDocs project.
-
 The MkDocs project welcomes contributions from developers and
 users in the open source community. Contributions can be made in a number of
 ways, a few examples are:

@@ -1,6 +1,6 @@
 # Translations
 
-Theme localization guide.
+*Theme localization guide.*
 
 ---
 

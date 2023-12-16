@@ -1,6 +1,6 @@
 # Getting Started with MkDocs
 
-An introductory tutorial!
+*An introductory tutorial!*
 
 ---
 
