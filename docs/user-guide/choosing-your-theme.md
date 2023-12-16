@@ -234,6 +234,8 @@ documentation.
 * [mkdocs](#mkdocs-locale)
 * [readthedocs](#readthedocs-locale)
 
+Third-party themes are welcome to use the same mechanism, though in practice they rarely do.
+
 WARNING:
 If you configure a language locale which is not yet supported by the theme
 that you are using, MkDocs will fall back to the theme's default locale.
