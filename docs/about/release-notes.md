@@ -478,11 +478,11 @@ So, on to the new equivalent example, changed to new-style schema and attribute-
 
 ```python
 from mkdocs import plugins
-from mkdocs.config import base, config_options as c
+from mkdocs.config import base, config_options as opt
 
 class MyPluginConfig(base.Config):
-    foo = c.Optional(c.Type(int))
-    bar = c.Type(str, default='')
+    foo = opt.Optional(opt.Type(int))
+    bar = opt.Type(str, default='')
 
 class MyPlugin(plugins.BasePlugin[MyPluginConfig]):
     def on_page_markdown(self, markdown: str, *, config: defaults.MkDocsConfig, **kwargs):
@@ -521,13 +521,13 @@ For class-based configs, there's a new definition for whether an option is "requ
 
 Defines a list of items that each must adhere to the same constraint. Kind of like a validated `Type(list)`
 
-Examples how to express a list of integers (with `from mkdocs.config import config_options as c`):
+Examples how to express a list of integers (with `from mkdocs.config import config_options as opt`):
 
 Description | Code entry
 ----------- | ----------
-Required to specify | `foo = c.ListOfItems(c.Type(int))`
-Optional, default is [] | `foo = c.ListOfItems(c.Type(int), default=[])`
-Optional, default is None | `foo = c.Optional(c.ListOfItems(c.Type(int)))`
+Required to specify | `foo = opt.ListOfItems(opt.Type(int))`
+Optional, default is [] | `foo = opt.ListOfItems(opt.Type(int), default=[])`
+Optional, default is None | `foo = opt.Optional(opt.ListOfItems(opt.Type(int)))`
 
 See more [examples in **documentation**](../dev-guide/plugins.md#examples-of-config-definitions).
 

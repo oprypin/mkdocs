@@ -23,7 +23,7 @@ class ConfigurationError(MkDocsException):
     """
     This error is raised by configuration validation when a validation error
     is encountered. This error should be raised by any configuration options
-    defined in a plugin's [config_scheme][].
+    defined in a plugin's [config schema](plugins.md#config).
     """
 
 

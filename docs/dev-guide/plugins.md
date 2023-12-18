@@ -2,70 +2,62 @@
 
 *A guide to creating MkDocs Plugins.*
 
-Like MkDocs, plugins must be written in Python. It is generally expected that
+Plugins for MkDocs are written in the Python programming language - like MkDocs itself. It is generally expected that
 each plugin would be distributed as a separate Python module, although it is
 possible to define multiple plugins in the same module. At a minimum, a MkDocs
-Plugin must consist of a [BasePlugin] subclass and an [entry point] which
+Plugin must consist of a [`BasePlugin`] subclass and an [entry point] which
 points to it.
 
-## BasePlugin
+## Defining the plugin class
 
 A subclass of `mkdocs.plugins.BasePlugin` should define the behavior of the plugin.
 The class generally consists of actions to perform on specific events in the build
 process as well as a configuration scheme for the plugin.
 
-All `BasePlugin` subclasses contain the following attributes:
+<a id="config_scheme"></a>
 
-### config_scheme
+But first, a separate subclass of `mkdocs.config.base.Config` that holds the *configuration* of that plugin should be defined.
 
-A tuple of configuration validation instances. Each item must consist of a
-two item tuple in which the first item is the string name of the
-configuration option and the second item is an instance of
-`mkdocs.config.config_options.BaseConfigOption` or any of its subclasses.
+NOTE: This class-based approach for configs only became available since MkDocs 1.4, and replaced the old `config_scheme` attribute. See [in release notes](../about/release-notes.md#rework-configoption-schemas-as-class-based-2962) if you need to learn how the old style works.
 
-For example, the following `config_scheme` defines three configuration options: `foo`, which accepts a string; `bar`, which accepts an integer; and `baz`, which accepts a boolean value.
+For example, the following configuration definition has three options: `foo`, which accepts a string; `bar`, which accepts an integer; and `baz`, which accepts a boolean value.
 
 ```python
-class MyPlugin(mkdocs.plugins.BasePlugin):
-    config_scheme = (
-        ('foo', mkdocs.config.config_options.Type(str, default='a default value')),
-        ('bar', mkdocs.config.config_options.Type(int, default=0)),
-        ('baz', mkdocs.config.config_options.Type(bool, default=True))
-    )
+from mkdocs.config import base, config_options as opt
+from mkdocs.config.defaults import MkDocsConfig
+from mkdocs.plugins import BasePlugin
+
+class MyPluginConfig(base.Config):
+    foo = opt.Type(str, default='a default value')
+    bar = opt.Type(int)  # required
+    baz = opt.Type(bool, default=False)
+
+class MyPlugin(BasePlugin[MyPluginConfig]):
+    def on_pre_build(self, config: MkDocsConfig, **kwargs):
+        if self.config.baz:
+            # implement "baz" functionality here...
 ```
 
-> NEW: **New in MkDocs 1.4.**
->
-> #### Subclassing `Config` to specify the config schema
->
-> To get type safety benefits, if you're targeting only MkDocs 1.4+, define the config schema as a class instead:
->
-> ```python
-> class MyPluginConfig(mkdocs.config.base.Config):
->     foo = mkdocs.config.config_options.Type(str, default='a default value')
->     bar = mkdocs.config.config_options.Type(int, default=0)
->     baz = mkdocs.config.config_options.Type(bool, default=True)
->
-> class MyPlugin(mkdocs.plugins.BasePlugin[MyPluginConfig]):
->     ...
-> ```
+Then for the plugin class itself, notice how we specify in square brackets that it uses `MyPluginConfig` as its config. This means that `MyPlugin` will always be guaranteed to have a validated instance of `MyPluginConfig` populated as its `self.config` member. This member will hold the user-specified options for the plugin. It is populated by MkDocs itself after config validation has completed.
+
+The above example plugin also defines 1 event that accesses an option provided by the user.
 
 #### Examples of config definitions
 
 >! EXAMPLE:
 >
 > ```python
-> from mkdocs.config import base, config_options as c
+> from mkdocs.config import base, config_options as opt
 >
 > class _ValidationOptions(base.Config):
->     enabled = c.Type(bool, default=True)
->     verbose = c.Type(bool, default=False)
->     skip_checks = c.ListOfItems(c.Choice(('foo', 'bar', 'baz')), default=[])
+>     enabled = opt.Type(bool, default=True)
+>     verbose = opt.Type(bool, default=False)
+>     skip_checks = opt.ListOfItems(opt.Choice(('foo', 'bar', 'baz')), default=[])
 >
 > class MyPluginConfig(base.Config):
->     definition_file = c.File(exists=True)  # required
->     checksum_file = c.Optional(c.File(exists=True))  # can be None but must exist if specified
->     validation = c.SubConfig(_ValidationOptions)
+>     definition_file = opt.File(exists=True)  # required
+>     checksum_file = opt.Optional(opt.File(exists=True))  # can be None but must exist if specified
+>     validation = opt.SubConfig(_ValidationOptions)
 > ```
 >
 > From the user's point of view `SubConfig` is similar to `Type(dict)`, it's just that it also retains full ability for validation: you define all valid keys and what each value should adhere to.
@@ -89,14 +81,14 @@ class MyPlugin(mkdocs.plugins.BasePlugin):
 >
 > ```python
 > import numbers
-> from mkdocs.config import base, config_options as c
+> from mkdocs.config import base, config_options as opt
 >
 > class _Rectangle(base.Config):
->     width = c.Type(numbers.Real)  # required
->     height = c.Type(numbers.Real)  # required
+>     width = opt.Type(numbers.Real)  # required
+>     height = opt.Type(numbers.Real)  # required
 >
 > class MyPluginConfig(base.Config):
->     add_rectangles = c.ListOfItems(c.SubConfig(_Rectangle))  # required
+>     add_rectangles = opt.ListOfItems(opt.SubConfig(_Rectangle))  # required
 > ```
 >
 > In this example we define a list of complex items, and that's achieved by passing a concrete `SubConfig` to `ListOfItems`.
@@ -112,7 +104,7 @@ class MyPlugin(mkdocs.plugins.BasePlugin):
 >       height: 2
 > ```
 
-When the user's configuration is loaded, the above scheme will be used to
+When the user's configuration is loaded, the schema defined by these attributes will be used to
 validate the configuration and fill in any defaults for settings not
 provided by the user. The validation classes may be any of the classes
 provided in `mkdocs.config.config_options` or a third party subclass defined
@@ -121,39 +113,15 @@ in the plugin.
 Any settings provided by the user which fail validation or are not defined
 in the `config_scheme` will raise a `mkdocs.config.base.ValidationError`.
 
-### config
-
-A dictionary of configuration options for the plugin, which is populated by
-the `load_config` method after configuration validation has completed. Use
-this attribute to access options provided by the user.
-
-```python
-def on_pre_build(self, config, **kwargs):
-    if self.config['baz']:
-        # implement "baz" functionality here...
-```
-
-> NEW: **New in MkDocs 1.4.**
->
-> #### Safe attribute-based access
->
-> To get type safety benefits, if you're targeting only MkDocs 1.4+, access options as attributes instead:
->
-> ```python
-> def on_pre_build(self, config, **kwargs):
->     if self.config.baz:
->         print(self.config.bar ** 2)  # OK, `int ** 2` is valid.
-> ```
-
 All `BasePlugin` subclasses contain the following method(s):
 
-### load_config(options)
+### `load_config(options)`
 
 Loads configuration from a dictionary of options. Returns a tuple of
 `(errors, warnings)`. This method is called by MkDocs during configuration
 validation and should not need to be called by the plugin.
 
-### on_&lt;event_name&gt;()
+### `on_<event_name>()`
 
 Optional methods which define the behavior for specific [events]. The plugin
 should define its behavior within these methods. Replace `<event_name>` with
@@ -175,31 +143,25 @@ the theme config:
 
 ```python
 class MyPlugin(BasePlugin):
-    def on_config(self, config, **kwargs):
-        config['theme'].static_templates.add('my_template.html')
+    def on_config(self, config: MkDocsConfig, **kwargs):
+        config.theme.static_templates.add('my_template.html')
         return config
 ```
 
-> NEW: **New in MkDocs 1.4.**
->
-> To get type safety benefits, if you're targeting only MkDocs 1.4+, access config options as attributes instead:
->
-> ```python
-> def on_config(self, config: MkDocsConfig):
->     config.theme.static_templates.add('my_template.html')
->     return config
-> ```
+Notice also that here we receive the top-level `config` of MkDocs itself, which is different from the current plugin's config - `self.config`.
+
+NOTE: Attribute-based access to config options only became available since MkDocs 1.4. See [in release notes](../about/release-notes.md#rework-configoption-schemas-as-class-based-2962) if you need to learn how the old style works.
 
 ## Events
 
-There are three kinds of events: [Global Events], [Page Events] and
-[Template Events].
+Events are split into these categories: [one-time events](#one-time-events), [global events](#global-events), [page events](#page-events) and [template events](#template-events).
 
-<details class="card">
+<details class="card" open>
   <summary>
-    See a diagram with relations between all the plugin events
+    Diagram of relations between all the plugin events
   </summary>
   <div class="card-body">
+    Legend:
     <ul>
       <li>The events themselves are shown in yellow, with their parameters.
       <li>Arrows show the flow of arguments and outputs of each event.
@@ -215,7 +177,7 @@ There are three kinds of events: [Global Events], [Page Events] and
 
 ### One-time Events
 
-One-time events run once per `mkdocs` invocation. The only case where these tangibly differ from [global events](#global-events) is for `mkdocs serve`: global events, unlike these, will run multiple times -- once per *build*.
+One-time events run once *ever*, until `mkdocs` is re-launched. But the only case where these tangibly differ from [global events](#global-events) is when `mkdocs serve` is used: global events, unlike these, will run once per *build*.
 
 #### on_startup
 
@@ -298,7 +260,7 @@ entire site.
 Template events are called once for each non-page template. Each template event
 will be called for each template defined in the [extra_templates] config setting
 as well as any [static_templates] defined in the theme. All template events are
-called after the [env] event and before any [page events].
+called after the [env] event and before any [page events](#page-events).
 
 #### on_pre_template
 
@@ -324,8 +286,8 @@ called after the [env] event and before any [page events].
 ### Page Events
 
 Page events are called once for each Markdown page included in the site. All
-page events are called after the [post_template] event and before the
-[post_build] event.
+page events are called after the [on_post_template](#on_post_template) event and before the
+[on_post_build](#on_post_build) event.
 
 #### on_pre_page
 
@@ -383,6 +345,37 @@ There may also arise a need to register a handler for the same event at multiple
 
 ### ::: mkdocs.plugins.CombinedEvent
 
+## Hooks
+
+The [hooks](../user-guide/configuration.md#hooks) mechanism is a natural extension of plugins. Each hook file is like a plugin that doesn't need to be installed, also it doesn't have its own config, or even a class instance in the first place. So, any advice for plugins that you see in this document can be applied to hooks. In fact, let's write the next section in the "hooks" style - with the plugin class being assumed if you want to use these recipes for permanent plugins.
+
+## Recipes
+
+### Recipes for affecting file content
+
+#### Adding a new Markdown document
+
+Add a new `File` object to the `Files` collection inside the `on_files` event. This is the only way to make a **new** file come into existence **and** have it pass through MkDocs' normal Markdown&rarr;HTML pipeline.
+
+> NOTE: **Event priority and interoperability.**
+>
+> If you know that other plugins may add files that your plugin would then want to look at, naturally you should probably put the `on_files` event at a later [priority](#mkdocs.plugins.event_priority). The same applies if you find it unlikely that other files would want to look at *your* plugin's modifications to files, if any.
+
+
+
+#### Find & replace in existing Markdown documents
+
+#### Adding a new raw file
+
+#### Gather information about other files into a single other document
+
+If this can be done without first passing through the render pipeline (and all the page events), you can simply follow the normal advice about [adding a new Markdown document](#adding-a-new-markdown-document). This is because you can inspect each file's content through `File.content_string` before any page events kick in. You can even write back to this property in order to modify files' content in advance of `on_page_markdown`. But if the render pipeline *is* needed or if you're 
+
+Otherwise, there's a trick - you can ensure that the particular.
+
+#### Gather information about other files into all other documents
+
+
 ## Handling Errors
 
 MkDocs defines four error types:
@@ -406,7 +399,7 @@ Therefore, you might want to catch any exceptions within your plugin and raise a
 `PluginError`, passing in your own custom-crafted message, so that the build
 process is aborted with a helpful message.
 
-The [on_build_error] event will be triggered for any exception.
+The [on_build_error](#on_build_error) event will be triggered for any exception.
 
 For example:
 
@@ -473,7 +466,7 @@ entry_points={
 The `pluginname` would be the name used by users (in the config file) and
 `path.to.some_plugin:SomePluginClass` would be the importable plugin itself
 (`from path.to.some_plugin import SomePluginClass`) where `SomePluginClass` is a
-subclass of [BasePlugin] which defines the plugin behavior. Naturally, multiple
+subclass of [`BasePlugin`] which defines the plugin behavior. Naturally, multiple
 Plugin classes could exist in the same module. Simply define each as a separate
 entry point.
 
@@ -493,18 +486,12 @@ tell MkDocs to use it via the config.
 
 You should publish a package on [PyPI], then add it to the [Catalog] for discoverability. Plugins are strongly recommended to have a unique plugin name (entry point name) according to the catalog.
 
-[BasePlugin]:#baseplugin
+[`BasePlugin`]: #defining-the-plugin-class
 [config]: ../user-guide/configuration.md#plugins
 [entry point]: #entry-point
 [env]: #on_env
 [events]: #events
 [extra_templates]: ../user-guide/configuration.md#extra_templates
-[Global Events]: #global-events
-[Page Events]: #page-events
-[post_build]: #on_post_build
-[post_template]: #on_post_template
 [static_templates]: ../user-guide/configuration.md#static_templates
-[Template Events]: #template-events
 [catalog]: https://github.com/mkdocs/catalog
-[on_build_error]: #on_build_error
 [PyPI]: https://pypi.org/
