@@ -106,6 +106,7 @@ class ConfigTests(unittest.TestCase):
                 'vars': {
                     'name': 'mkdocs',
                     'color_mode': 'light',
+                    'user_color_mode_toggle': False,
                     'locale': parse_locale('en'),
                     'include_search_page': False,
                     'search_index_only': False,
@@ -193,6 +194,7 @@ class ConfigTests(unittest.TestCase):
                 'vars': {
                     'name': 'mkdocs',
                     'color_mode': 'light',
+                    'user_color_mode_toggle': False,
                     'locale': parse_locale('fr'),
                     'show_sidebar': False,
                     'some_var': 'bar',

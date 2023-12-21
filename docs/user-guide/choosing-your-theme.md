@@ -21,7 +21,16 @@ theme:
 The default theme, which was built as a custom [Bootstrap] theme, supports almost
 every feature of MkDocs.
 
-![mkdocs](../img/mkdocs.png)
+<div id="mkdocs-theme-images" class="carousel slide carousel-fade" data-bs-ride="carousel">
+  <div class="carousel-inner">
+    <div class="carousel-item active">
+      <img src="../../img/mkdocs_theme_light_mode.png" class="d-block w-100" alt="MkDocs theme in light mode">
+    </div>
+    <div class="carousel-item">
+      <img src="../../img/mkdocs_theme_dark_mode.png" class="d-block w-100" alt="MkDocs theme in dark mode">
+    </div>
+  </div>
+</div>
 
 In addition to the default [theme configuration options][theme], the `mkdocs` theme
 supports the following options:
@@ -29,6 +38,14 @@ supports the following options:
 *   __`color_mode`__: Set the default color mode for the theme to one of `light`,
     `dark`, or `auto`. The `auto` mode will switch to `light` or `dark` based on
     the system configuration of the user's device. Default: `light`.
+
+*   __`user_color_mode_toggle`__: Enable a toggle menu in the navigation bar
+    which allows users to select their preferred `color_mode` (light, dark, auto)
+    from within the browser and save their preference for future page loads. The
+    default selection of the toggle menu on first page load is the value set to
+    `color_mode`. Default: `false`.
+
+    ![color mode toggle menu](../img/color_mode_toggle_menu.png)
 
 *   __`nav_style`__: Adjust the visual style of the top navigation bar. Set to
     one of `primary`, `dark` or `light`. Default: `primary`. This option is

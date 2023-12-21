@@ -18,32 +18,71 @@ function applyTopPadding() {
     $('.bs-sidebar.affix').css('top', offset.top + 'px');
 }
 
-function setColorMode(dark) {
-    // Switch between light/dark theme. `dark` is a boolean value.
+function setColorMode(mode) {
+    // Switch between light/dark theme. `mode` is a string value of either 'dark' or 'light'.
     var hljs_light = document.getElementById('hljs-light'),
         hljs_dark = document.getElementById('hljs-dark');
-    if (dark) {
-        document.documentElement.setAttribute('data-bs-theme', 'dark');
+    document.documentElement.setAttribute('data-bs-theme', mode);
+    if (mode == 'dark') {
         hljs_light.disabled = true;
         hljs_dark.disabled = false;
     } else {
-        document.documentElement.setAttribute('data-bs-theme', 'light');
         hljs_dark.disabled = true;
         hljs_light.disabled = false;
     }
 }
 
+function updateModeToggle(mode) {
+    // Update icon and toggle checkmarks of color mode selector.
+    var menu = document.getElementById('theme-menu');
+    document.querySelectorAll('[data-bs-theme-value]')
+       .forEach(function(toggle) {
+            if (mode == toggle.getAttribute('data-bs-theme-value')) {
+                toggle.lastElementChild.classList.remove('d-none');
+                menu.firstElementChild.setAttribute('class', toggle.firstElementChild.getAttribute('class'));
+            } else {
+                toggle.lastElementChild.classList.add('d-none');
+            }
+        });
+}
+
+function onSystemColorSchemeChange(event) {
+    // Update site color mode to match system color mode.
+    setColorMode(event.matches ? 'dark' : 'light');
+}
+
 $(document).ready(function() {
 
-    if (document.documentElement.getAttribute('data-bs-theme') == 'auto') {
-        var mql = window.matchMedia('(prefers-color-scheme: dark)');
-        // Set to mode defined by system
-        setColorMode(mql.matches);
-        // Listen for changes to system and update accordingly.
-        mql.addEventListener('change', function (e) {
-            setColorMode(e.matches);
-        });
+    var mql = window.matchMedia('(prefers-color-scheme: dark)'),
+        defaultMode = document.documentElement.getAttribute('data-bs-theme'),
+        storedMode = localStorage.getItem('colormode');
+    if (storedMode && storedMode != 'auto') {
+        setColorMode(storedMode);
+        updateModeToggle(storedMode);
+    } else if (storedMode == 'auto' || defaultMode == 'auto') {
+        setColorMode(mql.matches ? 'dark' : 'light');
+        updateModeToggle('auto');
+        mql.addEventListener('change', onSystemColorSchemeChange);
+    } else {
+        setColorMode(defaultMode);
+        updateModeToggle(defaultMode);
     }
+
+    document.querySelectorAll('[data-bs-theme-value]')
+       .forEach(function(toggle) {
+            toggle.addEventListener('click', function (e) {
+                var mode = e.target.getAttribute('data-bs-theme-value');
+                localStorage.setItem('colormode', mode);
+                if (mode == 'auto') {
+                    setColorMode(mql.matches ? 'dark' : 'light');
+                    mql.addEventListener('change', onSystemColorSchemeChange);
+                } else {
+                    setColorMode(mode);
+                    mql.removeEventListener('change', onSystemColorSchemeChange);
+                }
+                updateModeToggle(mode);
+            });
+        });
 
     applyTopPadding();
 

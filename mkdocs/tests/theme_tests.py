@@ -26,6 +26,7 @@ class ThemeTests(unittest.TestCase):
             {
                 'name': 'mkdocs',
                 'color_mode': 'light',
+                'user_color_mode_toggle': False,
                 'locale': parse_locale('en'),
                 'include_search_page': False,
                 'search_index_only': False,
