@@ -70,7 +70,7 @@
 
     <body{% if page and page.is_homepage %} class="homepage"{% endif %}>
         <div class="navbar fixed-top navbar-expand-lg bg-{{ config.theme.nav_style }}" data-bs-theme="{% if config.theme.nav_style == 'light' %}light{% else %}dark{% endif %}">
-            <div class="container-fluid">
+            <div class="container">
 
                 {%- block site_name %}
                 <a class="navbar-brand" href="{{ nav.homepage.url|url }}">{{ config.site_name }}</a>
