@@ -154,12 +154,10 @@ class OptionallyRequired(Generic[T], BaseConfigOption[T]):
     """
 
     @overload
-    def __init__(self, default=None):
-        ...
+    def __init__(self, default=None): ...
 
     @overload
-    def __init__(self, default=None, *, required: bool):
-        ...
+    def __init__(self, default=None, *, required: bool): ...
 
     def __init__(self, default=None, required=None):
         super().__init__()
@@ -307,12 +305,10 @@ class ConfigItems(ListOfItems[LegacyConfig]):
     """
 
     @overload
-    def __init__(self, *config_options: PlainConfigSchemaItem):
-        ...
+    def __init__(self, *config_options: PlainConfigSchemaItem): ...
 
     @overload
-    def __init__(self, *config_options: PlainConfigSchemaItem, required: bool):
-        ...
+    def __init__(self, *config_options: PlainConfigSchemaItem, required: bool): ...
 
     def __init__(self, *config_options: PlainConfigSchemaItem, required=None) -> None:
         super().__init__(SubConfig(*config_options), default=[])
@@ -328,12 +324,10 @@ class Type(Generic[T], OptionallyRequired[T]):
     """
 
     @overload
-    def __init__(self, type_: type[T], /, length: int | None = None, **kwargs):
-        ...
+    def __init__(self, type_: type[T], /, length: int | None = None, **kwargs): ...
 
     @overload
-    def __init__(self, type_: tuple[type[T], ...], /, length: int | None = None, **kwargs):
-        ...
+    def __init__(self, type_: tuple[type[T], ...], /, length: int | None = None, **kwargs): ...
 
     def __init__(self, type_, /, length=None, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -507,12 +501,10 @@ class URL(OptionallyRequired[str]):
     """
 
     @overload
-    def __init__(self, default=None, *, is_dir: bool = False):
-        ...
+    def __init__(self, default=None, *, is_dir: bool = False): ...
 
     @overload
-    def __init__(self, default=None, *, required: bool, is_dir: bool = False):
-        ...
+    def __init__(self, default=None, *, required: bool, is_dir: bool = False): ...
 
     def __init__(self, default=None, required=None, is_dir: bool = False) -> None:
         self.is_dir = is_dir
@@ -769,12 +761,10 @@ class ListOfPaths(ListOfItems[str]):
     """
 
     @overload
-    def __init__(self, default=[]):
-        ...
+    def __init__(self, default=[]): ...
 
     @overload
-    def __init__(self, default=[], *, required: bool):
-        ...
+    def __init__(self, default=[], *, required: bool): ...
 
     def __init__(self, default=[], required=None) -> None:
         super().__init__(FilesystemObject(exists=True), default)

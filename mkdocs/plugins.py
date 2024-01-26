@@ -1,4 +1,5 @@
 """Implements the plugin API for MkDocs."""
+
 from __future__ import annotations
 
 import logging
@@ -537,12 +538,10 @@ class PluginCollection(dict, MutableMapping[str, BasePlugin]):
                 self._register_event(event_name[3:], method, plugin_name=key)
 
     @overload
-    def run_event(self, name: str, **kwargs) -> Any:
-        ...
+    def run_event(self, name: str, **kwargs) -> Any: ...
 
     @overload
-    def run_event(self, name: str, item: T, **kwargs) -> T:
-        ...
+    def run_event(self, name: str, item: T, **kwargs) -> T: ...
 
     def run_event(self, name: str, item=None, **kwargs):
         """
