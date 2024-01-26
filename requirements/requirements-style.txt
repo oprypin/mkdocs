@@ -6,7 +6,7 @@
 # - ruff
 #
 
-black==23.12.1
+black==24.1.0
     # via hatch.envs.style
 click==8.1.7
     # via black
