@@ -315,7 +315,7 @@ class PageTests(unittest.TestCase):
         self.assertEqual(pg.parent, None)
         self.assertEqual(pg.previous_page, None)
         self.assertEqual(pg.title, 'Welcome to MkDocs')
-        pg.render(cfg, fl)
+        pg.render(cfg, Files([fl]))
         self.assertEqual(pg.title, 'Welcome to MkDocs')
 
     _SETEXT_CONTENT = dedent(
@@ -335,7 +335,7 @@ class PageTests(unittest.TestCase):
         self.assertIsNone(pg.title)
         pg.read_source(cfg)
         self.assertEqual(pg.title, 'Testing setext title')
-        pg.render(cfg, fl)
+        pg.render(cfg, Files([fl]))
         self.assertEqual(pg.title, 'Welcome to MkDocs Setext')
 
     @tempdir(files={'testing_setext_title.md': _SETEXT_CONTENT})
@@ -347,12 +347,12 @@ class PageTests(unittest.TestCase):
         fl = File('testing_setext_title.md', docs_dir, docs_dir, use_directory_urls=True)
         pg = Page(None, fl, cfg)
         pg.read_source(cfg)
-        pg.render(cfg, fl)
+        pg.render(cfg, Files([fl]))
         self.assertEqual(pg.title, 'Welcome to MkDocs Setext')
 
     _FORMATTING_CONTENT = dedent(
         '''
-        # \\*Hello --- *beautiful* `world`
+        # \\*Hello --- *beautiful* `wor<dl>`
 
         Hi.
         '''
@@ -365,8 +365,8 @@ class PageTests(unittest.TestCase):
         fl = File('testing_formatting.md', docs_dir, docs_dir, use_directory_urls=True)
         pg = Page(None, fl, cfg)
         pg.read_source(cfg)
-        pg.render(cfg, fl)
-        self.assertEqual(pg.title, '*Hello — beautiful world')
+        pg.render(cfg, Files([fl]))
+        self.assertEqual(pg.title, '*Hello — beautiful wor<dl>')
 
     _RAW_CONTENT = dedent(
         '''
@@ -382,8 +382,20 @@ class PageTests(unittest.TestCase):
         fl = File('testing_raw_content.md', docs_dir, docs_dir, use_directory_urls=True)
         pg = Page(None, fl, cfg)
         pg.read_source(cfg)
-        pg.render(cfg, fl)
+        pg.render(cfg, Files([fl]))
         self.assertEqual(pg.title, 'Hello world')
+
+    _IMAGE_CONTENT = '''# ![😄](hah.png)\n'''
+
+    @tempdir(files={'testing_image.md': _IMAGE_CONTENT, 'hah.png': ''})
+    def test_page_title_from_markdown_strip_image(self, docs_dir):
+        cfg = load_config()
+        fl = File('testing_image.md', docs_dir, docs_dir, use_directory_urls=True)
+        fl2 = File('hah.png', docs_dir, docs_dir, use_directory_urls=True)
+        pg = Page(None, fl, cfg)
+        pg.read_source(cfg)
+        pg.render(cfg, Files([fl, fl2]))
+        self.assertEqual(pg.title, '😄')
 
     _ATTRLIST_CONTENT = dedent(
         '''
@@ -409,7 +421,7 @@ class PageTests(unittest.TestCase):
         fl = File('testing_attr_list.md', docs_dir, docs_dir, use_directory_urls=True)
         pg = Page(None, fl, cfg)
         pg.read_source(cfg)
-        pg.render(cfg, fl)
+        pg.render(cfg, Files([fl]))
         self.assertEqual(pg.title, 'Welcome to MkDocs Attr { #welcome }')
 
     def test_page_title_from_meta(self):
@@ -435,7 +447,7 @@ class PageTests(unittest.TestCase):
         self.assertEqual(pg.previous_page, None)
         self.assertEqual(pg.title, 'A Page Title')
         self.assertEqual(pg.toc, [])
-        pg.render(cfg, fl)
+        pg.render(cfg, Files([fl]))
         self.assertEqual(pg.title, 'A Page Title')
 
     def test_page_title_from_filename(self):
@@ -460,7 +472,7 @@ class PageTests(unittest.TestCase):
         self.assertEqual(pg.parent, None)
         self.assertEqual(pg.previous_page, None)
         self.assertEqual(pg.title, 'Page title')
-        pg.render(cfg, fl)
+        pg.render(cfg, Files([fl]))
         self.assertEqual(pg.title, 'Page title')
 
     def test_page_title_from_capitalized_filename(self):
@@ -701,7 +713,7 @@ class PageTests(unittest.TestCase):
         pg.read_source(cfg)
         self.assertEqual(pg.content, None)
         self.assertEqual(pg.toc, [])
-        pg.render(cfg, [fl])
+        pg.render(cfg, Files([fl]))
         self.assertTrue(
             pg.content.startswith('<h1 id="welcome-to-mkdocs">Welcome to MkDocs</h1>\n')
         )

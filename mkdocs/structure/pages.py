@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import enum
+import io
 import logging
 import posixpath
 import warnings
@@ -277,7 +278,7 @@ class Page(StructureItem):
         extract_title_ext = _ExtractTitleTreeprocessor()
         extract_title_ext._register(md)
 
-        self.content = md.convert(self.markdown)
+        self.content = Markup(md.convert(self.markdown))
         self.toc = get_toc(getattr(md, 'toc_tokens', []))
         self._title_from_render = extract_title_ext.title
         self.present_anchor_ids = (
@@ -544,6 +545,18 @@ class _HTMLHandler(markdown.htmlparser.htmlparser.HTMLParser):  # type: ignore[n
         return super().handle_starttag(tag, attrs)
 
 
+def _extract_text(el: etree.Element, buf: io.StringIO) -> None:
+    if text := el.get('alt'):
+        buf.write(text)
+        return
+    if text := el.text:
+        buf.write(text)
+    for child in el:
+        _extract_text(child, buf)
+        if text := child.tail:
+            buf.write(text)
+
+
 class _ExtractTitleTreeprocessor(markdown.treeprocessors.Treeprocessor):
     title: str | None = None
     postprocessors: Sequence[markdown.postprocessors.Postprocessor] = ()
@@ -555,8 +568,10 @@ class _ExtractTitleTreeprocessor(markdown.treeprocessors.Treeprocessor):
                 if len(el) > 0 and el[-1].tag == 'a' and not (el[-1].tail or '').strip():
                     el = copy.copy(el)
                     del el[-1]
-                # Extract the text only, recursively.
-                title = ''.join(el.itertext())
+                # Extract the text only.
+                buf = io.StringIO()
+                _extract_text(el, buf)
+                title = buf.getvalue()
                 # Unescape per Markdown implementation details.
                 for pp in self.postprocessors:
                     title = pp.run(title)
