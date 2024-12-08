@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import logging
 import sys
-from typing import TYPE_CHECKING, Any, Callable, Generic, Literal, MutableMapping, TypeVar, overload
+from collections.abc import MutableMapping
+from typing import TYPE_CHECKING, Any, Callable, Generic, Literal, TypeVar, overload
 
 if sys.version_info >= (3, 10):
     from importlib.metadata import EntryPoint, entry_points

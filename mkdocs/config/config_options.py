@@ -11,22 +11,9 @@ import traceback
 import types
 import warnings
 from collections import Counter, UserString
+from collections.abc import Collection, Iterator, Mapping, MutableMapping
 from types import SimpleNamespace
-from typing import (
-    Any,
-    Callable,
-    Collection,
-    Dict,
-    Generic,
-    Iterator,
-    List,
-    Mapping,
-    MutableMapping,
-    NamedTuple,
-    TypeVar,
-    Union,
-    overload,
-)
+from typing import Any, Callable, Generic, NamedTuple, TypeVar, Union, overload
 from urllib.parse import quote as urlquote
 from urllib.parse import urlsplit, urlunsplit
 
@@ -185,7 +172,7 @@ class OptionallyRequired(Generic[T], BaseConfigOption[T]):
         return self.run_validation(value)
 
 
-class ListOfItems(Generic[T], BaseConfigOption[List[T]]):
+class ListOfItems(Generic[T], BaseConfigOption[list[T]]):
     """
     Validates a homogeneous list of items.
 
@@ -238,7 +225,7 @@ class ListOfItems(Generic[T], BaseConfigOption[List[T]]):
         return [fake_config[k] for k in fake_keys]
 
 
-class DictOfItems(Generic[T], BaseConfigOption[Dict[str, T]]):
+class DictOfItems(Generic[T], BaseConfigOption[dict[str, T]]):
     """
     Validates a dict of items. Keys are always strings.
 
@@ -939,7 +926,7 @@ class ExtraScript(BaseConfigOption[Union[ExtraScriptValue, str]]):
         return self.option_type.run_validation(value)
 
 
-class MarkdownExtensions(OptionallyRequired[List[str]]):
+class MarkdownExtensions(OptionallyRequired[list[str]]):
     """
     Markdown Extensions Config Option.
 
@@ -1075,8 +1062,7 @@ class Plugins(OptionallyRequired[plugins.PluginCollection]):
     def load_plugin_with_namespace(self, name: str, config) -> tuple[str, plugins.BasePlugin]:
         if '/' in name:  # It's already specified with a namespace.
             # Special case: allow to explicitly skip namespaced loading:
-            if name.startswith('/'):
-                name = name[1:]
+            name = name.removeprefix('/')
         else:
             # Attempt to load with prepended namespace for the current theme.
             if self.theme_key and self._config:
@@ -1152,7 +1138,7 @@ class Plugins(OptionallyRequired[plugins.PluginCollection]):
         return plugin
 
 
-class Hooks(BaseConfigOption[List[types.ModuleType]]):
+class Hooks(BaseConfigOption[list[types.ModuleType]]):
     """A list of Python scripts to be treated as instances of plugins."""
 
     def __init__(self, plugins_key: str) -> None:
@@ -1175,7 +1161,7 @@ class Hooks(BaseConfigOption[List[types.ModuleType]]):
         return hooks
 
     @classmethod
-    @functools.lru_cache(maxsize=None)
+    @functools.cache
     def _load_hook(cls, name, path):
         import importlib.util
 

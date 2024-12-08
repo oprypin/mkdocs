@@ -4,7 +4,8 @@ import gzip
 import logging
 import os
 import time
-from typing import TYPE_CHECKING, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 from urllib.parse import urljoin, urlsplit
 
 import jinja2

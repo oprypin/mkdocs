@@ -19,11 +19,11 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
@@ -31,7 +31,7 @@ classifiers = [
     "Topic :: Text Processing",
 ]
 dynamic = ["version"]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
     "click >=7.0",
     "Jinja2 >=2.11.1",
@@ -127,7 +127,7 @@ _coverage = [
 ]
 with-coverage = "test"
 [[tool.hatch.envs.test.matrix]]
-python = ["3.8", "3.9", "3.10", "3.11", "3.12", "pypy3"]
+python = ["3.9", "3.10", "3.11", "3.12", "3.13", "pypy3"]
 type = ["default", "min-req"]
 [tool.hatch.envs.test.overrides]
 matrix.type.features = [
@@ -144,7 +144,7 @@ detached = false
 [tool.hatch.envs.integration.scripts]
 test = "python -m mkdocs.tests.integration"
 [[tool.hatch.envs.integration.matrix]]
-python = ["3.8", "3.9", "3.10", "3.11", "3.12", "pypy3"]
+python = ["3.9", "3.10", "3.11", "3.12", "3.13", "pypy3"]
 type = ["default", "no-babel"]
 [tool.hatch.envs.integration.overrides]
 matrix.type.features = [
