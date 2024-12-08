@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import functools
 import ipaddress
 import logging
@@ -154,12 +155,10 @@ class OptionallyRequired(Generic[T], BaseConfigOption[T]):
     """
 
     @overload
-    def __init__(self, default=None):
-        ...
+    def __init__(self, default=None): ...
 
     @overload
-    def __init__(self, default=None, *, required: bool):
-        ...
+    def __init__(self, default=None, *, required: bool): ...
 
     def __init__(self, default=None, required=None):
         super().__init__()
@@ -219,10 +218,8 @@ class ListOfItems(Generic[T], BaseConfigOption[List[T]]):
             return value
 
         fake_config = LegacyConfig(())
-        try:
+        with contextlib.suppress(AttributeError):
             fake_config.config_file_path = self._config.config_file_path
-        except AttributeError:
-            pass
 
         # Emulate a config-like environment for pre_validation and post_validation.
         parent_key_name = getattr(self, '_key_name', '')
@@ -274,10 +271,8 @@ class DictOfItems(Generic[T], BaseConfigOption[Dict[str, T]]):
             return value
 
         fake_config = LegacyConfig(())
-        try:
+        with contextlib.suppress(AttributeError):
             fake_config.config_file_path = self._config.config_file_path
-        except AttributeError:
-            pass
 
         # Emulate a config-like environment for pre_validation and post_validation.
         fake_config.data = value
@@ -307,12 +302,10 @@ class ConfigItems(ListOfItems[LegacyConfig]):
     """
 
     @overload
-    def __init__(self, *config_options: PlainConfigSchemaItem):
-        ...
+    def __init__(self, *config_options: PlainConfigSchemaItem): ...
 
     @overload
-    def __init__(self, *config_options: PlainConfigSchemaItem, required: bool):
-        ...
+    def __init__(self, *config_options: PlainConfigSchemaItem, required: bool): ...
 
     def __init__(self, *config_options: PlainConfigSchemaItem, required=None) -> None:
         super().__init__(SubConfig(*config_options), default=[])
@@ -328,12 +321,10 @@ class Type(Generic[T], OptionallyRequired[T]):
     """
 
     @overload
-    def __init__(self, type_: type[T], /, length: int | None = None, **kwargs):
-        ...
+    def __init__(self, type_: type[T], /, length: int | None = None, **kwargs): ...
 
     @overload
-    def __init__(self, type_: tuple[type[T], ...], /, length: int | None = None, **kwargs):
-        ...
+    def __init__(self, type_: tuple[type[T], ...], /, length: int | None = None, **kwargs): ...
 
     def __init__(self, type_, /, length=None, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -497,12 +488,10 @@ class URL(OptionallyRequired[str]):
     """
 
     @overload
-    def __init__(self, default=None, *, is_dir: bool = False):
-        ...
+    def __init__(self, default=None, *, is_dir: bool = False): ...
 
     @overload
-    def __init__(self, default=None, *, required: bool, is_dir: bool = False):
-        ...
+    def __init__(self, default=None, *, required: bool, is_dir: bool = False): ...
 
     def __init__(self, default=None, required=None, is_dir: bool = False) -> None:
         self.is_dir = is_dir
@@ -759,12 +748,10 @@ class ListOfPaths(ListOfItems[str]):
     """
 
     @overload
-    def __init__(self, default=[]):
-        ...
+    def __init__(self, default=[]): ...
 
     @overload
-    def __init__(self, default=[], *, required: bool):
-        ...
+    def __init__(self, default=[], *, required: bool): ...
 
     def __init__(self, default=[], required=None) -> None:
         super().__init__(FilesystemObject(exists=True), default)
@@ -1187,8 +1174,9 @@ class Hooks(BaseConfigOption[List[types.ModuleType]]):
             hooks[name] = self._load_hook(name, path)
         return hooks
 
+    @classmethod
     @functools.lru_cache(maxsize=None)
-    def _load_hook(self, name, path):
+    def _load_hook(cls, name, path):
         import importlib.util
 
         spec = importlib.util.spec_from_file_location(name, path)

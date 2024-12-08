@@ -158,12 +158,13 @@ def get_navigation(files: Files, config: MkDocsConfig) -> Navigation:
         log.log(
             config.validation.nav.omitted_files,
             'The following pages exist in the docs directory, but are not '
-            'included in the "nav" configuration:\n  - ' + '\n  - '.join(missing_from_config),
+            'included in the "nav" configuration:\n  - %s',
+            '\n  - '.join(missing_from_config),
         )
 
     links = _get_by_type(items, Link)
     for link in links:
-        scheme, netloc, path, query, fragment = urlsplit(link.url)
+        scheme, netloc, _path, _query, _fragment = urlsplit(link.url)
         if scheme or netloc:
             log.debug(f"An external link to '{link.url}' is included in the 'nav' configuration.")
         elif (

@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 def build_page(title, path, config, md_src=''):
     """Helper which returns a Page object."""
     files = Files([File(path, config.docs_dir, config.site_dir, config.use_directory_urls)])
-    page = Page(title, list(files)[0], config)
+    page = Page(title, next(iter(files)), config)
     # Fake page.read_source()
     page.markdown, page.meta = meta.get_data(md_src)
     return page, files
@@ -860,9 +860,7 @@ class BuildTests(PathAssertionMixin, unittest.TestCase):
                     )
 
                     summary_path = Path(site_dir, 'SUMMARY.html')
-                    if exclude == 'full':
-                        self.assertPathNotExists(summary_path)
-                    elif exclude == 'drafts' and not serve_url:
+                    if exclude == 'full' or (exclude == 'drafts' and not serve_url):
                         self.assertPathNotExists(summary_path)
                     else:
                         self.assertPathExists(summary_path)
@@ -955,4 +953,4 @@ class _TestExtension(markdown.extensions.Extension):
         md.preprocessors.register(_TestPreprocessor(self.base_path), "mkdocs_test", priority=32)
 
 
-makeExtension = _TestExtension
+makeExtension = _TestExtension  # noqa: N816

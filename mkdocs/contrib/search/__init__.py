@@ -30,6 +30,7 @@ class LangOption(c.OptionallyRequired[List[str]]):
             lang_part = fallback.get(lang_part, lang_part)
             if os.path.isfile(os.path.join(base_path, 'lunr-language', f'lunr.{lang_part}.js')):
                 return lang_part
+        return None
 
     def run_validation(self, value: object):
         if isinstance(value, str):

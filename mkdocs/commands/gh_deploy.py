@@ -43,8 +43,7 @@ def _get_current_sha(repo_path) -> str:
     )
 
     stdout, _ = proc.communicate()
-    sha = stdout.decode('utf-8').strip()
-    return sha
+    return stdout.decode('utf-8').strip()
 
 
 def _get_remote_url(remote_name: str) -> tuple[str, str] | tuple[None, None]:
@@ -78,7 +77,9 @@ def _check_version(branch: str) -> None:
 
     stdout, _ = proc.communicate()
     msg = stdout.decode('utf-8').strip()
-    m = re.search(r'\d+(\.\d+)+((a|b|rc)\d+)?(\.post\d+)?(\.dev\d+)?', msg, re.X | re.I)
+    m = re.search(
+        r'\d+(\.\d+)+((a|b|rc)\d+)?(\.post\d+)?(\.dev\d+)?', msg, re.VERBOSE | re.IGNORECASE
+    )
     previousv = version.parse(m.group()) if m else None
     currentv = version.parse(mkdocs.__version__)
     if not previousv:

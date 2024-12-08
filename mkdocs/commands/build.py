@@ -16,8 +16,10 @@ from mkdocs.exceptions import Abort, BuildError
 from mkdocs.structure.files import File, Files, InclusionLevel, get_files, set_exclusions
 from mkdocs.structure.nav import Navigation, get_navigation
 from mkdocs.structure.pages import Page
-from mkdocs.utils import DuplicateFilter  # noqa: F401 - legacy re-export
-from mkdocs.utils import templates
+from mkdocs.utils import (
+    DuplicateFilter,  # noqa: F401 - legacy re-export
+    templates,
+)
 
 if TYPE_CHECKING:
     from mkdocs.config.defaults import MkDocsConfig
@@ -83,9 +85,7 @@ def _build_template(
     output = template.render(context)
 
     # Run `post_template` plugin events.
-    output = config.plugins.on_post_template(output, template_name=name, config=config)
-
-    return output
+    return config.plugins.on_post_template(output, template_name=name, config=config)
 
 
 def _build_theme_template(
@@ -311,8 +311,8 @@ def build(config: MkDocsConfig, *, serve_url: str | None = None, dirty: bool = F
         if excluded:
             log.info(
                 "The following pages are being built only for the preview "
-                "but will be excluded from `mkdocs build` per `draft_docs` config:\n  - "
-                + "\n  - ".join(excluded)
+                "but will be excluded from `mkdocs build` per `draft_docs` config:\n  - %s",
+                "\n  - ".join(excluded),
             )
 
         # Run `env` plugin events.

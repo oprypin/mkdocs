@@ -14,6 +14,8 @@ else:
 if TYPE_CHECKING:
     import jinja2.environment
 
+import contextlib
+
 from mkdocs import utils
 from mkdocs.config.base import Config, ConfigErrors, ConfigWarnings, LegacyConfig, PlainConfigSchema
 
@@ -64,7 +66,7 @@ class BasePlugin(Generic[SomeConfig]):
 
     config_class: type[SomeConfig] = LegacyConfig  # type: ignore[assignment]
     config_scheme: PlainConfigSchema = ()
-    config: SomeConfig = {}  # type: ignore[assignment]
+    config: SomeConfig = {}  # type: ignore[assignment]  # noqa: RUF012
 
     supports_multiple_instances: bool = False
     """Set to true in subclasses to declare support for adding the same plugin multiple times."""
@@ -524,10 +526,9 @@ class PluginCollection(dict, MutableMapping[str, BasePlugin]):
                 )
             utils.insort(events, method, key=lambda m: -getattr(m, 'mkdocs_priority', 0))
             if plugin_name:
-                try:
+                # If the method is somehow not hashable.
+                with contextlib.suppress(TypeError):
                     self._event_origins[method] = plugin_name
-                except TypeError:  # If the method is somehow not hashable.
-                    pass
 
     def __getitem__(self, key: str) -> BasePlugin:
         return super().__getitem__(key)
@@ -541,12 +542,10 @@ class PluginCollection(dict, MutableMapping[str, BasePlugin]):
                 self._register_event(event_name[3:], method, plugin_name=key)
 
     @overload
-    def run_event(self, name: str, **kwargs) -> Any:
-        ...
+    def run_event(self, name: str, **kwargs) -> Any: ...
 
     @overload
-    def run_event(self, name: str, item: T, **kwargs) -> T:
-        ...
+    def run_event(self, name: str, item: T, **kwargs) -> T: ...
 
     def run_event(self, name: str, item=None, **kwargs):
         """

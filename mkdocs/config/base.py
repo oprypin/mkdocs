@@ -6,7 +6,7 @@ import os
 import sys
 import warnings
 from collections import UserDict
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from typing import (
     IO,
     TYPE_CHECKING,
@@ -86,12 +86,10 @@ class BaseConfigOption(Generic[T]):
         self._name = name
 
     @overload
-    def __get__(self, obj: Config, type=None) -> T:
-        ...
+    def __get__(self, obj: Config, type=None) -> T: ...
 
     @overload
-    def __get__(self, obj, type=None) -> BaseConfigOption:
-        ...
+    def __get__(self, obj, type=None) -> BaseConfigOption: ...
 
     def __get__(self, obj, type=None):
         if not isinstance(obj, Config):
@@ -325,10 +323,8 @@ def _open_config_file(config_file: str | IO | None) -> Iterator[IO]:
     else:
         log.debug(f"Loading configuration file: {result_config_file}")
         # Ensure file descriptor is at beginning
-        try:
+        with suppress(OSError):
             result_config_file.seek(0)
-        except OSError:
-            pass
 
     try:
         yield result_config_file

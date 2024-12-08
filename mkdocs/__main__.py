@@ -9,6 +9,7 @@ import sys
 import textwrap
 import traceback
 import warnings
+from typing import ClassVar
 
 import click
 
@@ -59,14 +60,14 @@ def _enable_warnings():
 
 
 class ColorFormatter(logging.Formatter):
-    colors = {
+    colors: ClassVar = {
         'CRITICAL': 'red',
         'ERROR': 'red',
         'WARNING': 'yellow',
         'DEBUG': 'blue',
     }
 
-    text_wrapper = textwrap.TextWrapper(
+    text_wrapper: ClassVar = textwrap.TextWrapper(
         width=shutil.get_terminal_size(fallback=(0, 0)).columns,
         replace_whitespace=False,
         break_long_words=False,

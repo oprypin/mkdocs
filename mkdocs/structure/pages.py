@@ -533,7 +533,9 @@ class _RawHTMLPreprocessor(markdown.preprocessors.Preprocessor):
 
     def _register(self, md: markdown.Markdown) -> None:
         md.preprocessors.register(
-            self, "mkdocs_raw_html", priority=21  # Right before 'html_block'.
+            self,
+            "mkdocs_raw_html",
+            priority=21,  # Right before 'html_block'.
         )
 
 

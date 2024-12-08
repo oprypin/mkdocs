@@ -2,9 +2,8 @@ import os
 import unittest
 
 from mkdocs import exceptions
-from mkdocs.config import base
+from mkdocs.config import base, defaults
 from mkdocs.config import config_options as c
-from mkdocs.config import defaults
 from mkdocs.config.base import ValidationError
 from mkdocs.tests.base import change_dir, tempdir
 
@@ -18,7 +17,7 @@ class ConfigBaseTests(unittest.TestCase):
             }
         )
 
-        failed, warnings = conf.validate()
+        _failed, warnings = conf.validate()
 
         self.assertEqual(
             warnings,
